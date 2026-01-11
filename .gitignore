@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+Thumbs.db
+test_output/
+Tesseract-OCR/
+user_data/
+.vscode/
+.idea/
+tests/
+build_exe.py
