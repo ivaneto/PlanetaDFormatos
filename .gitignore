@@ -11,3 +11,6 @@ user_data/
 .idea/
 tests/
 build_exe.py
+PlanetaDeFormatos_v1.0.spec
+build/
+dist/

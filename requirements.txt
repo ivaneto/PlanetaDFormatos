@@ -46,3 +46,4 @@ urllib3
 wrapt
 xlsxwriter
 playwright
+pyhanko

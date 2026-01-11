@@ -10,6 +10,12 @@ Este proyecto esta pensado para estudiantes, profesionales y personas que necesi
   <img src="assets/Pantalla_principal_2.png" alt="GUI2">
 </p>
 
+# Ejecutable
+
+El ejecutable es demasiado pesado para GitHub, pero puedes descargarlo de manera segura desde el servidor oficial. Completamente listo para usar:
+
+[Descargar Ejecutable v1.0 (Google Drive)](https://drive.google.com/file/d/1nrVPgHzEC3LmEB0YnteEWK2FxLmijagk/view?usp=sharing)
+
 ## Características principales
 
 ### Organización y gestión
