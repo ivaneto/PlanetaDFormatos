@@ -6,11 +6,11 @@ class ThumbnailManager:
     @staticmethod
     def get_page_thumbnail(pdf_path, page_num, size=(100, 140)):
         """
-        Genera una miniatura para una página específica de un PDF.
-        :param pdf_path: Ruta al archivo PDF.
-        :param page_num: Número de página (empezando por 0).
-        :param size: Tupla (ancho, alto) para la miniatura.
-        :return: Objeto de imagen PIL.
+        Generate a thumbnail for a specific page of a PDF.
+        :param pdf_path: Path to the PDF file.
+        :param page_num: Page number (starting with 0).
+        :param size: Tuple (width, height) for the thumbnail.
+        :return: PIL Image object.
         """
         try:
             doc = fitz.open(pdf_path)

@@ -14,7 +14,7 @@ class Img2PdfPage(BasePage):
         self.content_frame.grid_columnconfigure(1, weight=1)
         self.content_frame.grid_rowconfigure(0, weight=1)
         
-        # Panel de control
+        # Control Panel
         self.controls_frame = ctk.CTkFrame(self.content_frame, width=280, corner_radius=15, fg_color="white")
         self.controls_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         self.controls_frame.grid_propagate(False)
@@ -22,9 +22,9 @@ class Img2PdfPage(BasePage):
         self.file_list = FileListFrame(self.content_frame, title="Imágenes Seleccionadas")
         self.file_list.grid(row=0, column=1, sticky="nsew", padx=(0, 20), pady=20)
         
-        # --- Contenido de los controles ---
+        # --- Controls Content ---
         
-        # Título
+        # Title
         ctk.CTkLabel(self.controls_frame, text="Opciones de Imagen", 
                      font=(Theme.FONT_FAMILY, 20, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=(30, 20), padx=20, anchor="w")
         
@@ -42,13 +42,13 @@ class Img2PdfPage(BasePage):
         
         ctk.CTkLabel(self.controls_frame, text="").pack(fill="y", expand=True)
         
-        # Boton para limpiar la lista
+        # Button to clear list
         self.btn_clear = ctk.CTkButton(self.controls_frame, text="Limpiar Lista", command=self.clear_images, 
                                      fg_color="transparent", border_width=2, border_color="gray", text_color="gray", 
                                      height=40, hover_color="#EEEEEE")
         self.btn_clear.pack(pady=10, padx=20, fill="x")
         
-        # Boton para convertir
+        # Button to convert
         self.btn_convert = ctk.CTkButton(self.controls_frame, text="Convertir a PDF", command=self.convert_images, 
                                      fg_color="#2CC985", hover_color="#0C955A", text_color="white",
                                      height=60, font=(Theme.FONT_FAMILY, 18, "bold"))

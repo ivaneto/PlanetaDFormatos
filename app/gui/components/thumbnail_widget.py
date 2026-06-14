@@ -13,38 +13,38 @@ class PageThumbnailWidget(ctk.CTkFrame):
         self.page_num = page_num
         self.enable_controls = enable_controls
         
-        # Callbacks de arrastre
+        # Drag callbacks
         self.on_drag_start = on_drag_start
         self.on_drag_motion = on_drag_motion
         self.on_drag_end = on_drag_end
         
-        # Etiqueta de Imagen
+        # Image Label
         self.image_label = ctk.CTkLabel(self, text="", image=image)
         self.image_label.pack(padx=2, pady=2)
         
-        # Etiqueta de Número de Página
+        # Page Number Label
         self.num_label = ctk.CTkLabel(self, text=f"Página {page_num + 1}", font=(Theme.FONT_FAMILY, 10), text_color="gray")
         if show_page_num:
             self.num_label.pack(pady=(0, 2))
         
         if enable_controls:
-            # Marco de Controles
+            # Controls Frame
             controls_frame = ctk.CTkFrame(self, fg_color="transparent", height=20)
             controls_frame.pack(fill="x", pady=(0, 2), padx=2)
             
-            # Contenedor para centrar botones
+            # Container to center buttons
             btn_container = ctk.CTkFrame(controls_frame, fg_color="transparent")
             btn_container.pack(expand=True)
 
             if on_rotate:
-                # Botón de Rotar "⟳"
+                # Rotate Button "⟳"
                 btn_rot = ctk.CTkButton(btn_container, text="⟳", width=20, height=20, 
                                         fg_color="transparent", text_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER,
                                         font=(Theme.FONT_FAMILY, 14),
                                         command=lambda: on_rotate(self))
                 btn_rot.pack(side="left", padx=3)
 
-            # Botón de Eliminar
+            # Delete Button
             if on_delete:
                 btn_del = ctk.CTkButton(btn_container, text="🗑", width=20, height=20, 
                                         fg_color="transparent", text_color="red", hover_color="#FFEEEE",
@@ -52,7 +52,7 @@ class PageThumbnailWidget(ctk.CTkFrame):
                                         command=lambda: on_delete(self))
                 btn_del.pack(side="left", padx=2)
             
-            # Vincular eventos de arrastre al widget y la imagen
+            # Bind drag events to widget and image
             self.bind("<Button-1>", self.start_drag)
             self.image_label.bind("<Button-1>", self.start_drag)
             self.num_label.bind("<Button-1>", self.start_drag)

@@ -32,7 +32,7 @@ class BasePage(ctk.CTkFrame):
             self.controller.route_files(files)
 
     def handle_dropped_files(self, files):
-        """Sobrescribir esto para manejar los archivos soltados. Devolver True si se manejaron."""
+        """Override this to handle dropped files. Return True if handled."""
         return False
 
     def parse_dropped_files(self, data):

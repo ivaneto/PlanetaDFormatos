@@ -1,6 +1,6 @@
 """
-Word a PDF
-Codigo simple
+Word to PDF
+Simple code
 """
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
@@ -14,11 +14,11 @@ class Word2PdfPage(BasePage):
     def create_widgets(self):
         self.selected_file = None
         
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Word a PDF", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        # Selección de archivo
+        # File Selection
         select_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         select_frame.pack(pady=10)
         
@@ -28,7 +28,7 @@ class Word2PdfPage(BasePage):
         ctk.CTkButton(select_frame, text="Seleccionar archivo Word", command=self.select_file,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14)).pack(side="left")
         
-        # Botón de conversión
+        # Conversion Button
         ctk.CTkButton(self.content_frame, text="Convertir a PDF", command=self.convert_file, 
                       fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
         

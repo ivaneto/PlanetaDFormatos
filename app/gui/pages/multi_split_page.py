@@ -13,11 +13,11 @@ class MultiSplitPage(BasePage):
         self.total_pages = 0
         self.ranges = []
         
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Dividir PDF", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=(20, 10))
         
-        # --- Seleccion de archivo ---
+        # --- File Selection ---
         top_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         top_frame.pack(fill="x", padx=20, pady=10)
         
@@ -27,31 +27,31 @@ class MultiSplitPage(BasePage):
         ctk.CTkButton(top_frame, text="Seleccionar PDF", command=self.select_file,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14)).pack(side="right")
         
-        # --- Acciones ---
+        # --- Actions ---
         bottom_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         bottom_frame.pack(side="bottom", fill="x", padx=20, pady=20)
         self.action_var = tk.StringVar(value="split_ranges")
         
-        # Boton de Procesar
+        # Process Button
         self.btn_process = ctk.CTkButton(bottom_frame, text="Crear", command=self.process_action,
                                          fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 16, "bold"), width=150, height=40)
         self.btn_process.pack(side="bottom", pady=(10, 0))
 
-        # Frame de Opciones
+        # Options Frame
         options_frame = ctk.CTkFrame(bottom_frame, fg_color="transparent")
         options_frame.pack(side="bottom", pady=10)
         
-        # Botones Radio Compactos
-        # Fila 1
+        # Compact Radio Buttons
+        # Row 1
         ctk.CTkRadioButton(options_frame, text="🖼️ Rango Imágenes", variable=self.action_var, value="images_range").grid(row=0, column=0, padx=15, pady=5)
         ctk.CTkRadioButton(options_frame, text="🖼️ Todo Imágenes", variable=self.action_var, value="images_all").grid(row=0, column=1, padx=15, pady=5)
         ctk.CTkRadioButton(options_frame, text="✂️ Dividir Rangos", variable=self.action_var, value="split_ranges").grid(row=0, column=2, padx=15, pady=5)
         
-        # Fila 2
+        # Row 2
         ctk.CTkRadioButton(options_frame, text="✂️ Dividir Todo", variable=self.action_var, value="split_all").grid(row=1, column=0, padx=15, pady=5)
         ctk.CTkRadioButton(options_frame, text="📑 Unir Rangos", variable=self.action_var, value="merge_ranges").grid(row=1, column=1, padx=15, pady=5)
 
-        # --- Columnas de Division ---
+        # --- Split Columns ---
         
         center_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         center_frame.pack(side="top", fill="both", expand=True, padx=20, pady=10)
@@ -59,7 +59,7 @@ class MultiSplitPage(BasePage):
         center_frame.grid_columnconfigure(1, weight=1, uniform="group1")
         center_frame.grid_rowconfigure(0, weight=1)
         
-        # Columna Izquierda: Entradas & Informacion
+        # Left Column: Entries & Information
         left_col = ctk.CTkFrame(center_frame, fg_color=Theme.CARD_BG_N2, corner_radius=10)
         left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
         
@@ -75,7 +75,7 @@ class MultiSplitPage(BasePage):
         
         ctk.CTkLabel(left_col, text="Definir Rango", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=(0, 10))
         
-        # Entradas de Rango
+        # Range Entries
         input_frame = ctk.CTkFrame(left_col, fg_color="transparent")
         input_frame.pack(pady=10)
         
@@ -91,7 +91,7 @@ class MultiSplitPage(BasePage):
                                      fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold"))
         self.add_btn.pack(pady=20)
         
-        # Columna Derecha: Lista de Rangos
+        # Right Column: Ranges List
         right_col = ctk.CTkFrame(center_frame, fg_color=Theme.CARD_BG_N2, corner_radius=10)
         right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=0)
         
@@ -112,7 +112,7 @@ class MultiSplitPage(BasePage):
         self.file_label.configure(text=filename)
         self.total_pages = PDFManager.get_page_count(filename)
         self.pages_label.configure(text=f"Páginas Totales: {self.total_pages}")
-        # Reiniciar rangos
+        # Reset ranges
         self.ranges = []
         self.refresh_ranges_list()
         
@@ -153,7 +153,7 @@ class MultiSplitPage(BasePage):
             self.refresh_ranges_list()
             
     def refresh_ranges_list(self):
-        # Limpiar widgets existentes en el frame de desplazamiento
+        # Clear existing widgets in scroll frame
         for widget in self.ranges_scroll.winfo_children():
             widget.destroy()
             
@@ -164,7 +164,7 @@ class MultiSplitPage(BasePage):
             info = f"PDF {i+1}: Páginas {start} - {end}"
             ctk.CTkLabel(row, text=info, font=(Theme.FONT_FAMILY, 14)).pack(side="left", padx=10, pady=5)
             
-            # Boton de Eliminacion
+            # Delete Button
             ctk.CTkButton(row, text="✕", width=30, height=30, fg_color="transparent", text_color="red", hover_color=("gray75", "gray30"),
                           command=lambda idx=i: self.remove_range(idx)).pack(side="right", padx=5)
             
@@ -239,10 +239,10 @@ class MultiSplitPage(BasePage):
         output_dir = filedialog.askdirectory(title="Select Output Directory for Images")
         if output_dir:
             try:
-                # Colectar todas las paginas unicas
+                # Collect all unique pages
                 pages_to_convert = set()
                 for start, end in self.ranges:
-                    # Convertir rango 1-based a indices 0-based
+                    # Convert 1-based range to 0-based indices
                     for p in range(start, end + 1):
                         pages_to_convert.add(p - 1)
                 
@@ -262,7 +262,7 @@ class MultiSplitPage(BasePage):
         output_dir = filedialog.askdirectory(title="Select Output Directory for Images")
         if output_dir:
             try:
-                # pages=None implica convertir todas las paginas
+                # pages=None implies converting all pages
                 Converter.pdf_to_images(self.selected_file, output_dir, pages=None)
                 messagebox.showinfo("Éxito", "¡Imágenes creadas para todas las páginas!")
             except Exception as e:

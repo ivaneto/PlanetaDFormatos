@@ -8,11 +8,11 @@ class FileListFrame(ctk.CTkFrame):
         self.on_remove = on_remove
         self.files = []
         
-        # Configurar cuadrícula (grid)
+        # Configure grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
-        # Encabezado
+        # Header
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.grid(row=0, column=0, sticky="ew", padx=0, pady=(0, 10))
         
@@ -22,11 +22,11 @@ class FileListFrame(ctk.CTkFrame):
         self.count_label = ctk.CTkLabel(self.header_frame, text="0 archivos", text_color="gray", font=(Theme.FONT_FAMILY, 12))
         self.count_label.pack(side="right")
         
-        # Lista con desplazamiento (Scrollable)
-        self.scroll_frame = ctk.CTkScrollableFrame(self, corner_radius=10, fg_color="white") # Fondo blanco para la lista
+        # Scrollable list
+        self.scroll_frame = ctk.CTkScrollableFrame(self, corner_radius=10, fg_color="white") # White background for list
         self.scroll_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
         
-        # Marcador de posición (Placeholder)
+        # Placeholder
         self.placeholder_label = ctk.CTkLabel(self.scroll_frame, text="Ningún archivo seleccionado.\nUsa el botón 'Añadir archivos' para comenzar.",
                                             text_color="gray", font=(Theme.FONT_FAMILY, 14))
         self.placeholder_label.pack(pady=80, expand=True)
@@ -53,11 +53,11 @@ class FileListFrame(ctk.CTkFrame):
         return self.files
         
     def refresh_list(self):
-        # Limpiar widgets actuales
+        # Clear current widgets
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
             
-        # Actualizar contador
+        # Update counter
         self.count_label.configure(text=f"{len(self.files)} archivos")
         
         if not self.files:
@@ -65,8 +65,9 @@ class FileListFrame(ctk.CTkFrame):
                                                 text_color="gray", font=(Theme.FONT_FAMILY, 14))
             self.placeholder_label.pack(pady=80, expand=True)
             return
+            return
         
-        # Añadir elementos
+        # Add items
         for filepath in self.files:
             self._create_file_item(filepath)
             
@@ -90,10 +91,10 @@ class FileListFrame(ctk.CTkFrame):
         item_frame = ctk.CTkFrame(self.scroll_frame, fg_color=Theme.BACKGROUND, corner_radius=8)
         item_frame.pack(fill="x", pady=4, padx=5)
         
-        # Icono
+        # Icon
         ctk.CTkLabel(item_frame, text="📄", font=("Arial", 24), text_color=Theme.PRIMARY).pack(side="left", padx=(15, 10), pady=10)
         
-        # Marco de información
+        # Info frame
         info_frame = ctk.CTkFrame(item_frame, fg_color="transparent")
         info_frame.pack(side="left", fill="x", expand=True, pady=5)
         
@@ -103,7 +104,7 @@ class FileListFrame(ctk.CTkFrame):
         path_label = ctk.CTkLabel(info_frame, text=filepath, anchor="w", text_color="gray", font=(Theme.FONT_FAMILY, 11))
         path_label.pack(fill="x")
         
-        # Botón para eliminar
+        # Button to remove
         remove_btn = ctk.CTkButton(
             item_frame, 
             text="×", 
@@ -117,7 +118,7 @@ class FileListFrame(ctk.CTkFrame):
         )
         remove_btn.pack(side="right", padx=5)
 
-        # Botón para mover hacia abajo
+        # Button to move down
         down_btn = ctk.CTkButton(
             item_frame, 
             text="↓", 
@@ -131,7 +132,7 @@ class FileListFrame(ctk.CTkFrame):
         )
         down_btn.pack(side="right", padx=2)
 
-        # Botón para mover hacia arriba
+        # Button to move up
         up_btn = ctk.CTkButton(
             item_frame, 
             text="↑", 
@@ -145,7 +146,7 @@ class FileListFrame(ctk.CTkFrame):
         )
         up_btn.pack(side="right", padx=2)
 
-        # Vincular eventos de arrastre al marco y sus hijos (excepto los botones)
+        # Bind drag events to frame and children (except buttons)
         for widget in [item_frame, item_frame.master, info_frame, name_label, path_label]:
            if widget == item_frame.master: continue
            
@@ -167,12 +168,12 @@ class FileListFrame(ctk.CTkFrame):
 
         source_filepath = self._drag_data["filepath"]
         
-        # Encontrar el widget bajo el ratón
+        # Find widget under mouse
         x, y = event.x_root, event.y_root
         target_widget = self.winfo_containing(x, y)
         scroll_frame_y = self.scroll_frame.winfo_rooty()
         
-        # Si estamos fuera de la lista, no hacer nada
+        # If we are outside the list, do nothing
         if not (self.scroll_frame.winfo_rootx() < x < self.scroll_frame.winfo_rootx() + self.scroll_frame.winfo_width()):
              del self._drag_data
              return
@@ -188,7 +189,7 @@ class FileListFrame(ctk.CTkFrame):
 
         found = False
         for i, child in enumerate(children):
-            if not isinstance(child, ctk.CTkFrame): continue # Omitir marcos que no sean de elementos, si los hay
+            if not isinstance(child, ctk.CTkFrame): continue # Skip non-item frames if any
             
             child_y = child.winfo_rooty()
             child_h = child.winfo_height()
@@ -199,7 +200,7 @@ class FileListFrame(ctk.CTkFrame):
                 break
         
         if not found:
-             # Si está por debajo del último elemento
+             # If below the last item
              last_child = children[-1]
              if y > last_child.winfo_rooty() + last_child.winfo_height():
                  target_index = len(self.files) - 1
@@ -210,7 +211,7 @@ class FileListFrame(ctk.CTkFrame):
             source_index = self.files.index(source_filepath)
             
             if source_index != target_index:
-                # Mover elemento
+                # Move item
                 self.files.pop(source_index)
                 self.files.insert(target_index, source_filepath)
                 self.refresh_list()

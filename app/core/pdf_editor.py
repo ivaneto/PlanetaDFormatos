@@ -6,7 +6,7 @@ import io
 class PDFEditorBackend:
     def __init__(self):
         self.doc = None
-        self.pages_images = [] # Caché de imágenes PIL para renderizado
+        self.pages_images = [] # PIL image cache for rendering
         self.scale = 1.0
         
     def load_pdf(self, path, scale=1.0):
@@ -32,12 +32,12 @@ class PDFEditorBackend:
 
     def save_changes(self, original_path, changes, output_path):
         """
-        Aplicar los cambios al PDF.
-        changes: lista de diccionarios como {'type': 'text', 'page': 0, 'x': 100, 'y': 100, ...}
+        Apply changes to the PDF.
+        changes: list of dictionaries like {'type': 'text', 'page': 0, 'x': 100, 'y': 100, ...}
         """
         doc = fitz.open(original_path)
         
-        # Primera pasada: Añadir anotaciones
+        # First pass: Add annotations
         for change in changes:
             page_idx = change.get('page', 0)
             if page_idx >= len(doc):
@@ -95,7 +95,7 @@ class PDFEditorBackend:
                 rect = fitz.Rect(change['x0'], change['y0'], change['x1'], change['y1'])
                 page.insert_image(rect, filename=change['path'])
         
-        # Segunda pasada: Aplicar redacciones
+        # Second pass: Apply redactions
         for page in doc:
             page.apply_redactions()
 
@@ -104,18 +104,18 @@ class PDFEditorBackend:
 
     def flatten_pdf(self, input_path, output_path):
         """
-        Aplana todas las anotaciones, campos de formulario y widgets en la interfaz de la página.
-        Esto evita ediciones futuras.
+        Flattens all annotations, form fields and widgets on the page interface.
+        This prevents future edits.
         """
         try:
             src_doc = fitz.open(input_path)
-            out_doc = fitz.open() # Nuevo PDF vacío
+            out_doc = fitz.open() # New empty PDF
             
             for src_page in src_doc:
-                # Crear una nueva página en la salida con las mismas dimensiones
+                # Create a new page in output with the same dimensions
                 out_page = out_doc.new_page(width=src_page.rect.width, height=src_page.rect.height)
                 
-                # Renderizar la página de origen SOBRE la página de salida
+                # Render source page ONTO output page
                 out_page.show_pdf_page(out_page.rect, src_doc, src_page.number)
             
             out_doc.save(output_path)
@@ -128,7 +128,7 @@ class PDFEditorBackend:
 
     def encrypt_pdf(self, input_path, output_path, user_pw, owner_pw, permissions):
         """
-        Cifra el PDF con contraseñas y permisos usando PikePDF.
+        Encrypts the PDF with passwords and permissions using PikePDF.
         """
         try:
             import pikepdf
@@ -137,13 +137,13 @@ class PDFEditorBackend:
             if not owner_pw:
                 owner_pw = secrets.token_hex(32)
 
-            # Mapear los permisos de fitz a la lógica de PikePDF
+            # Map fitz permissions to PikePDF logic
             can_print = (permissions & fitz.PDF_PERM_PRINT) != 0
             can_copy = (permissions & fitz.PDF_PERM_COPY) != 0
             can_modify = (permissions & fitz.PDF_PERM_MODIFY) != 0
             can_annotate = (permissions & fitz.PDF_PERM_ANNOTATE) != 0
             
-            # Construir el objeto Permissions
+            # Build Permissions object
             pike_perms = pikepdf.Permissions(
                 print_lowres=can_print,
                 print_highres=can_print,
@@ -155,9 +155,9 @@ class PDFEditorBackend:
                 accessibility=True 
             )
 
-            # Abrir con PikePDF
+            # Open with PikePDF
             with pikepdf.open(input_path) as pdf:
-                # Cifrado con AES-256 (R=6)
+                # Encryption with AES-256 (R=6)
                 enc = pikepdf.Encryption(
                     user=user_pw,
                     owner=owner_pw,
@@ -173,7 +173,7 @@ class PDFEditorBackend:
 
     def unlock_pdf(self, input_path, output_path, password):
         """
-        Desbloquear un PDF eliminando su cifrado (requiere una contraseña válida).
+        Unlock a PDF by removing its encryption (requires a valid password).
         """
         try:
             doc = fitz.open(input_path)
@@ -184,7 +184,7 @@ class PDFEditorBackend:
                     doc.close()
                     return False
             
-            # Guardar sin argumentos de cifrado elimina la seguridad
+            # Saving without encryption arguments removes security
             doc.save(output_path)
             doc.close()
             return True
@@ -194,7 +194,7 @@ class PDFEditorBackend:
 
     def get_metadata(self, input_path):
         """
-        Obtener los metadatos del PDF como un diccionario.
+        Get PDF metadata as a dictionary.
         """
         try:
             doc = fitz.open(input_path)
@@ -207,8 +207,8 @@ class PDFEditorBackend:
 
     def save_metadata(self, input_path, output_path, metadata):
         """
-        Guardar PDF con nuevos metadatos.
-        metadata: diccionario de claves de metadatos (título, autor, etc.)
+        Save PDF with new metadata.
+        metadata: dictionary of metadata keys (title, author, etc.)
         """
         try:
             doc = fitz.open(input_path)
@@ -222,15 +222,15 @@ class PDFEditorBackend:
 
     def repair_pdf(self, input_path, output_path):
         """
-        Intentar reparar el PDF forzando una reescritura completa de la tabla XREF y la estructura.
+        Attempt to repair the PDF by forcing a full rewrite of the XREF table and structure.
         """
         try:
-            # PyMuPDF intenta reparar al abrir
+            # PyMuPDF attempts to repair on open
             doc = fitz.open(input_path)
             
-            # garbage=4: deduplicar objetos, limpiar almacenamiento
-            # deflate=True: comprimir flujos
-            # clean=True: limpiar bits de permiso y contenido
+            # garbage=4: deduplicate objects, clean storage
+            # deflate=True: compress streams
+            # clean=True: clean permission bits and content
             doc.save(output_path, garbage=4, deflate=True, clean=True)
             doc.close()
             return True
@@ -240,8 +240,8 @@ class PDFEditorBackend:
 
     def convert_to_pdfa(self, input_path, output_path):
         """
-        Convertir a PDF/A (Mejor esfuerzo).
-        Incrusta fuentes e intenta añadir metadatos PDF/A.
+        Convert to PDF/A (Best effort).
+        Embeds fonts and tries to add PDF/A metadata.
         """
         try:
             doc = fitz.open(input_path)
@@ -291,7 +291,7 @@ class PDFEditorBackend:
             
             doc.set_xml_metadata(pdfa_xml)
             
-            # Eliminar permisos/cifrado
+            # Remove permissions/encryption
             doc.save(output_path, garbage=4, deflate=True, clean=True)
             doc.close()
             return True
@@ -301,13 +301,13 @@ class PDFEditorBackend:
 
     def is_pdfa(self, input_path):
         """
-        Comprobar si el PDF dice ser PDF/A (buscando metadatos pdfaid).
+        Check if PDF claims to be PDF/A (looking for pdfaid metadata).
         """
         try:
             doc = fitz.open(input_path)
             metadata_xml = doc.get_xml_metadata()
             doc.close()
-            # Comprobación simple para el espacio de nombres de la ID de PDF/A
+            # Simple check for PDF/A ID namespace
             if metadata_xml and "pdfaid" in metadata_xml:
                  return True
             return False

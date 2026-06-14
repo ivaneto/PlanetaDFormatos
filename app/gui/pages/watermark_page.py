@@ -15,15 +15,15 @@ class WatermarkPage(BasePage):
         self.opacity = tk.DoubleVar(value=0.5)
         self.rotation = tk.StringVar(value="45")
 
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Añadir Marca de Agua", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
 
-        # Marco de Contenido Principal
+        # Main Content Frame
         content_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=20)
 
-        # Selección de PDF de Entrada
+        # Input PDF Selection
         input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         input_frame.pack(fill="x", pady=5)
         ctk.CTkLabel(input_frame, text="PDF de Entrada:", font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
@@ -32,12 +32,12 @@ class WatermarkPage(BasePage):
         ctk.CTkButton(input_frame, text="Explorar", command=self.browse_pdf, width=100,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=10, pady=10)
 
-        # Configuración de la Marca de Agua
+        # Watermark Settings
         settings_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         settings_frame.pack(fill="x", pady=10)
         ctk.CTkLabel(settings_frame, text="Configuración de la Marca de Agua", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=10)
 
-        # Selección de Tipo
+        # Type Selection
         type_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         type_frame.pack(fill="x", padx=10, pady=5)
         ctk.CTkLabel(type_frame, text="Tipo:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
@@ -46,19 +46,19 @@ class WatermarkPage(BasePage):
         ctk.CTkRadioButton(type_frame, text="Imagen", variable=self.watermark_type, value="image", command=self.toggle_inputs,
                            fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=10)
 
-        # Entrada de Texto
+        # Text Entry
         self.text_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         ctk.CTkLabel(self.text_frame, text="Texto:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
         ctk.CTkEntry(self.text_frame, textvariable=self.watermark_text).pack(side="left", fill="x", expand=True, padx=5)
 
-        # Entrada de Imagen
+        # Image Entry
         self.image_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         ctk.CTkLabel(self.image_frame, text="Imagen:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
         ctk.CTkEntry(self.image_frame, textvariable=self.watermark_image, state="readonly").pack(side="left", fill="x", expand=True, padx=5)
         ctk.CTkButton(self.image_frame, text="Explorar", command=self.browse_image, width=80,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=5)
 
-        # Opciones Comunes
+        # Common Options
         options_frame = ctk.CTkFrame(settings_frame, fg_color="transparent")
         options_frame.pack(fill="x", padx=10, pady=10)
         
@@ -68,7 +68,7 @@ class WatermarkPage(BasePage):
         ctk.CTkLabel(options_frame, text="Rotación:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=(10, 0))
         ctk.CTkEntry(options_frame, textvariable=self.rotation, width=60).pack(side="left", padx=5)
 
-        # Botón para Aplicar
+        # Apply Button
         ctk.CTkButton(self.content_frame, text="Aplicar Marca de Agua", command=self.apply_watermark, 
                       fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
         
@@ -90,7 +90,7 @@ class WatermarkPage(BasePage):
         return handled
 
     def toggle_inputs(self):
-        # Reajustar para asegurar el orden y la visibilidad correctos
+        # Reset to ensure correct order and visibility
         self.text_frame.pack_forget()
         self.image_frame.pack_forget()
         

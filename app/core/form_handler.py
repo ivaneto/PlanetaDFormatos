@@ -5,25 +5,25 @@ class FormHandler:
     @staticmethod
     def extract_fields(pdf_path):
         """
-        Escanea el PDF en busca de widgets de formulario y devuelve una lista de diccionarios con información de los campos.
+        Scans the PDF for form widgets and returns a list of dictionaries with field information.
         """
         fields = []
         try:
             doc = fitz.open(pdf_path)
             for page_num, page in enumerate(doc):
-                # Iterar sobre los widgets de la página
+                # Iterate over page widgets
                 for widget in page.widgets():
                     if not widget.field_name:
                         continue
                         
                     field_data = {
                         "page": page_num,
-                        "param": widget.field_name, # El nombre real utilizado para el llenado
-                        "label": widget.field_label or widget.field_name, # Etiqueta para el usuario
-                        "type": widget.field_type_string, # ej. 'Text', 'Btn' (Checkbox/Radio), 'Ch' (Choice)
+                        "param": widget.field_name, # Actual name used for filling
+                        "label": widget.field_label or widget.field_name, # Label for the user
+                        "type": widget.field_type_string, # e.g. 'Text', 'Btn' (Checkbox/Radio), 'Ch' (Choice)
                         "value": widget.field_value,
-                        "rect": list(widget.rect), # [x0, y0, x1, y1] para el contexto de resaltado
-                        "choices": widget.choice_values # Para cuadros combinados / cuadros de lista
+                        "rect": list(widget.rect), # [x0, y0, x1, y1] for highlight context
+                        "choices": widget.choice_values # For comboboxes / listboxes
                     }
                     
                     if int(widget.field_type) in [1, 5, fitz.PDF_WIDGET_TYPE_BUTTON, fitz.PDF_WIDGET_TYPE_CHECKBOX]:
@@ -84,17 +84,17 @@ class FormHandler:
     @staticmethod
     def fill_pdf(pdf_path, field_data_map, output_path):
         """
-        Rellena el PDF con los datos proporcionados.
-        :param field_data_map: Diccionario {nombre_campo: nuevo_valor}
+        Fills the PDF with the provided data.
+        :param field_data_map: Dictionary {field_name: new_value}
         """
         try:
             doc = fitz.open(pdf_path)
             form = doc.load_page(0).get_drawings()
             
-            # Iteración robusta:
+            # Robust iteration:
             for page in doc:
                 for widget in page.widgets():
-                    # print(f"[DEBUG] inspeccionando widget {widget.field_name}")
+                    # print(f"[DEBUG] inspecting widget {widget.field_name}")
                     if widget.field_name in field_data_map:
                         new_val = field_data_map[widget.field_name]
                         
@@ -123,7 +123,7 @@ class FormHandler:
                                     except Exception as r_err:
                                         print(f"Error en el botón de opción (Radio): {r_err}")
                                         traceback.print_exc()
-                                        # Alternativa
+                                        # Alternative
                                         widget.field_value = bool(new_val)
                                         widget.update()
                                 
@@ -131,7 +131,7 @@ class FormHandler:
                                     widget.field_value = bool(new_val)
                                     widget.update()
                                         
-                            # Manejar Texto /
+                            # Handle Text /
                             else:
                                 widget.field_value = str(new_val)
                                 widget.update()

@@ -11,11 +11,11 @@ class PageNumbersPage(BasePage):
         self.selected_file = None
         self.position = ctk.StringVar(value="bottom-right")
         
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Añadir Números de Página", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        # Selección de Archivos
+        # File Selection
         select_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         select_frame.pack(pady=10)
         
@@ -25,7 +25,7 @@ class PageNumbersPage(BasePage):
         ctk.CTkButton(select_frame, text="Seleccionar PDF", command=self.select_file,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14)).pack(side="left")
         
-        # Selección de Posición
+        # Position Selection
         pos_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         pos_frame.pack(pady=10)
         ctk.CTkLabel(pos_frame, text="Posición:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
@@ -40,7 +40,7 @@ class PageNumbersPage(BasePage):
         ctk.CTkComboBox(pos_frame, values=list(self.pos_map.keys()), variable=self.display_pos,
                         fg_color="white", text_color=Theme.TEXT_MAIN, button_color=Theme.PRIMARY).pack(side="left", padx=10)
         
-        # Botón para aplicar
+        # Apply Button
         ctk.CTkButton(self.content_frame, text="Añadir Número de Página", command=self.apply_numbers, 
                       fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
         

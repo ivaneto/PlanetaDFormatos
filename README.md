@@ -1,6 +1,6 @@
 # Planeta De Formatos -> PDF 📚
 
-Este proyecto esta pensado para estudiantes, profesionales y personas que necesitan una herramienta para gestionar, editar y manipular archivos PDF de una manera más dinámica. Aunque todas las funciones estan en el mercado, existen toques adicionales que podrían ser muy utiles para la experiencia del usuario. Solo utiliza archivos locales, haciendolo más seguro y confiable.
+This project is designed for students, professionals, and anyone who needs a tool to manage, edit, and manipulate PDF files in a more dynamic way. Although all these functions are available on the market, there are additional touches that could be very useful for the user experience. It only uses local files, making it safer and more reliable.
 
 <p align="center">
   <img src="assets/Pantalla_principal.png" alt="GUI1">
@@ -10,101 +10,101 @@ Este proyecto esta pensado para estudiantes, profesionales y personas que necesi
   <img src="assets/Pantalla_principal_2.png" alt="GUI2">
 </p>
 
-# Ejecutable
+# Executable
 
-El ejecutable es demasiado pesado para GitHub, pero puedes descargarlo de manera segura desde el servidor oficial. Completamente listo para usar:
+The executable is too heavy for GitHub, but you can download it safely from the official server. Completely ready to use:
 
-[Descargar Ejecutable v1.0 (Google Drive)](https://drive.google.com/file/d/1nrVPgHzEC3LmEB0YnteEWK2FxLmijagk/view?usp=sharing)
+[Download Executable v1.0 (Google Drive)](https://drive.google.com/file/d/1nrVPgHzEC3LmEB0YnteEWK2FxLmijagk/view?usp=sharing)
 
-## Características principales
+## Main Features
 
-### Organización y gestión
-- **Unir PDF**: Combina múltiples archivos PDF de una forma visual, seleccionando las paginas que deseas unir de cada archivo. 
-Con una selección avanzada puedes seleccionar rangos de paginas de cada archivo, ejemplo, tienes 3 archivos PDF, el primero tiene 10 paginas, el segundo 20 y el tercero 30, puedes seleccionar las paginas 1-5, 10 del primero, 6-10 del segundo, 11-15 del tercero y regresar al primero (o cualquiera) para las hojas 7-9. Cada archivo se distingue por una letra como en este ejemplo son tres serian A, B y C, para realizar esta selección debe de ser así: **(A:1-5,10)(B:6-10)(C:11-15)(A:7-9)**. Con esto tendras la unión para crear tu nuevo PDF, esto es muy útil para archivos con muchas hojas y no tener que seleccionar una por una.
-- **Dividir PDF**: Se definen rangos de un PDF para poder dividirlo en varios PDFs. Dentro de esta función se tienen 5 opciones:
-   - Rango de imagenes: Basado en los rangos definidos creara imagenes solamente de las paginas de los rangos seleccionados (Todos lo rangos que esten en la lista).
-   - Todo imagenes: Creara imagenes de todas las paginas del PDF. (Se recomienda crear una carpeta donde guardar las imagenes).
-   - Dividir rangos: Basado en los rangos definidos creara PDFs individuales de cada rango
-   - Dividir todo: Creara PDFs de cada pagina del PDF. (Se recomienda crear una carpeta donde guardar los PDFs).
-   - Unir rangos: Basado en los rangos definidos creara un PDF con las paginas de los rangos seleccionados (Todos lo rangos que esten en la lista).
-- **Organizar PDF**: Reordena páginas visualmente mediante arrastrar y soltar (Drag & Drop),  rótalas según sea necesario y elimina las paginas que no desees. Soporta archivos PDF, documentos (word) e imágenes. 
-(Al arrastrar desde tu ventana de archivos PPT o excel intentara hacerlos PDFs para mostrarlos, pero es posible que no funcione correctamente) 
-- **Recortar**: Ajusta con precisión los márgenes y dimensiones de las páginas. Se tienen tres opciones:
-   - PDF recortado: Creará un PDF solamente con las secciones recortadas por el usuario.
-   - PDF completo con recortes: Creará un PDF con las paginas que no estan recortadas y en las que se hicieron recortes se reemplazara la pagina original por la sección o secciones recortadas.
-   - Generar imagenes: Genera imagenes de las secciones recortadas.
+### Organization and Management
+- **Merge PDF**: Combine multiple PDF files visually, selecting the pages you want to merge from each file. 
+With advanced selection, you can select page ranges from each file. For example, if you have 3 PDF files, the first has 10 pages, the second 20, and the third 30, you can select pages 1-5 and 10 from the first, 6-10 from the second, 11-15 from the third, and return to the first (or any) for pages 7-9. Each file is identified by a letter; in this example (three files), they would be A, B, and C. The selection would look like this: **(A:1-5,10)(B:6-10)(C:11-15)(A:7-9)**. This will create your new PDF, which is very useful for files with many pages to avoid selecting them one by one.
+- **Split PDF**: Define ranges of a PDF to split it into several PDFs. This function includes 5 options:
+   - Image range: Creates images only of the pages in the selected ranges (all ranges in the list).
+   - All images: Creates images of all pages in the PDF. (Creating a dedicated folder for the images is recommended).
+   - Split ranges: Creates individual PDFs for each defined range.
+   - Split all: Creates individual PDFs for every page of the document. (Creating a dedicated folder for the PDFs is recommended).
+   - Merge ranges: Creates a single PDF with the pages from all selected ranges (all ranges in the list).
+- **Organize PDF**: Visually reorder pages using Drag & Drop, rotate them as needed, and delete unwanted pages. Supports PDF files, Word documents, and images. 
+(Attempting to drag PPT or Excel files will try to convert them to PDF for display, but it may not work perfectly).
+- **Crop**: Precisely adjust page margins and dimensions. Three options available:
+   - Cropped PDF: Creates a PDF containing only the sections cropped by the user.
+   - Full PDF with crops: Creates a PDF where non-cropped pages are kept, and pages with crops are replaced by the selected crop section(s).
+   - Generate images: Generates images from the cropped sections.
 
-### 📝 Edición y anotación
-- **Editor de PDF (BETA)**: Modifica contenido, añade texto, formas y dibujos directamente sobre el documento.
-- **Redactar (BETA)**: Censura información sensible de forma permanente y segura.
-- **Marca de Agua**: Añade marcas de agua personalizadas (texto o imagen) con control total de opacidad, tamaño y rotación.
-- **Números de Página**: Inserta numeración automática en diferentes posiciones.
-- **Rellenar Formularios (BETA)**: Detecta automáticamente y permite completar campos de formularios interactivos.
+### 📝 Editing and Annotation
+- **PDF Editor (BETA)**: Modify content, add text, shapes, and drawings directly onto the document.
+- **Redact (BETA)**: Permanently and securely redact sensitive information.
+- **Watermark**: Add custom watermarks (text or image) with full control over opacity, size, and rotation.
+- **Page Numbers**: Insert automatic numbering in different positions.
+- **Fill Forms (BETA)**: Automatically detect and fill interactive form fields.
 
-### 🔄 Conversión inteligente
-- **Imágenes a PDF**: Convierte lotes de imágenes (JPG, PNG, BMP, etc.) en documentos PDF.
-- **Suite Office**: Conversión bidireccional de alta fidelidad entre PDF y formatos Word (.docx). Para Excel (.xlsx) y PowerPoint (.pptx) se necesita más desarrollo y pruebas para un funcionamiento óptimo.
-- **OCR (Reconocimiento de Texto)**: Transforma PDFs escaneados o fotos de documentos en texto editable y buscable.
-- **HTML a PDF**: Captura y convierte páginas web completas a PDF manteniendo el diseño original.
+### 🔄 Intelligent Conversion
+- **Images to PDF**: Convert batches of images (JPG, PNG, BMP, etc.) into PDF documents.
+- **Office Suite**: High-fidelity bidirectional conversion between PDF and Word (.docx). Excel (.xlsx) and PowerPoint (.pptx) support requires further development and testing for optimal performance.
+- **OCR (Optical Character Recognition)**: Transform scanned PDFs or document photos into editable and searchable text.
+- **HTML to PDF**: Capture and convert entire web pages to PDF while maintaining the original layout.
 
-### 🛡️ Seguridad y optimización
-- **Proteger y Desbloquear**: Gestiona contraseñas de apertura y permisos de edición/impresión.
-- **Comprimir**: Optimiza el tamaño del archivo sin sacrificar la legibilidad.
-- **Metadatos**: Edita la información interna del archivo (Autor, Título, Asunto, etc.).
-- **Reparar**: Recupera y reconstruye archivos PDF que presentan errores o están dañados.
-- **Estándar PDF/A**: Convierte documentos al estándar de archivado a largo plazo.
+### 🛡️ Security and Optimization
+- **Protect and Unlock**: Manage open passwords and editing/printing permissions.
+- **Compress**: Optimize file size without sacrificing readability.
+- **Metadata**: Edit internal file information (Author, Title, Subject, etc.).
+- **Repair**: Recover and rebuild PDF files that are corrupted or have errors.
+- **PDF/A Standard**: Convert documents to the long-term archiving standard.
 
-### 📖 Visualización y firma
-- **Visor integrado**: Visualizador fluido con funciones de búsqueda, selección de texto y copia rápida. Pensado para una busqueda y con una función de salto para pasar a la herramienta necesaria. 
-- **Firmar PDF**: Soporte para firmas visuales (dibujadas o imágenes) y firmas digitales basadas en certificados (.p12 / .pfx).
+### 📖 Viewing and Signing
+- **Integrated Viewer**: Smooth viewer with search functions, text selection, and quick copy. Designed for searching and features a "jump" function to skip to the necessary tool.
+- **Sign PDF**: Support for visual signatures (drawn or images) and digital signatures based on certificates (.p12 / .pfx).
 
-## Instalación y configuración
+## Installation and Configuration
 
-### Requisitos previos
+### Prerequisites
 - **Python 3.10+**
-- **Tesseract OCR**: El proyecto contiene la carpeta bin con el ejecutable de Tesseract, pero si se desea usar es recomendable (no es obligatorio, ya esta dentro de bin) que en el sistema este instalado para las funciones de reconocimiento de texto.
-- **Playwright**: Para la conversión de HTML a PDF.
+- **Tesseract OCR**: The project includes a `bin` folder with the Tesseract executable, but it is recommended (though not mandatory) to have it installed on the system for text recognition functions.
+- **Playwright**: For HTML to PDF conversion.
 
-### Pasos de instalación
+### Installation Steps
 
-1. **Clonar el repositorio**:
+1. **Clone the repository**:
    ```bash
-   git clone <url-del-repositorio>
+   git clone <repository-url>
    cd PlanetaDFormatos
    ```
 
-2. **Entorno virtual**:
+2. **Virtual Environment**:
    ```bash
    python -m venv .venv
-   # Activar en Windows:
+   # Activate on Windows:
    .venv\Scripts\activate
    ```
 
-3. **Dependencias**:
+3. **Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Navegadores para conversión web**:
+4. **Web Conversion Browsers**:
    ```bash
    playwright install chromium
    ```
 
-### Cómo ejecutar
-Inicia la aplicación ejecutando el script principal:
+### How to Run
+Start the application by running the main script:
 ```bash
 python main.py
 ```
 
-## 📦 Tecnologías utilizadas
-- **Interfaz**: `customtkinter`, `tkinterdnd2`, `ttkthemes`.
-- **Motor PDF**: `PyMuPDF (fitz)`, `pypdf`, `reportlab`, `pikepdf`.
-- **Conversión**: `pdf2docx`, `docx2pdf`, `python-docx`, `python-pptx`, `pytesseract`, `playwright`.
-- **Procesamiento**: `Pillow`, `opencv-python`, `pandas`.
-- **Firma Digital**: `pyhanko`.
+## 📦 Technologies Used
+- **Interface**: `customtkinter`, `tkinterdnd2`, `ttkthemes`.
+- **PDF Engine**: `PyMuPDF (fitz)`, `pypdf`, `reportlab`, `pikepdf`.
+- **Conversion**: `pdf2docx`, `docx2pdf`, `python-docx`, `python-pptx`, `pytesseract`, `playwright`.
+- **Processing**: `Pillow`, `opencv-python`, `pandas`.
+- **Digital Signature**: `pyhanko`.
 
-## ⚖️ Licencia
-Este proyecto es software propietario. Consulte el archivo `COMMERCIAL_LICENSE.md` para más detalles sobre los términos de uso.
+## ⚖️ License
+This project is proprietary software. See the `COMMERCIAL_LICENSE.md` file for more details on usage terms.
 
 ---
-© 2026 Planeta De Formatos. Todos los derechos reservados.
+© 2026 Planeta De Formatos. All rights reserved.

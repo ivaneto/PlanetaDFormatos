@@ -12,22 +12,22 @@ class RepairPage(BasePage):
         self.full_input_path = ""
         self.input_pdf = tk.StringVar()
 
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Reparar PDF", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        # Descripción
+        # Description
         desc_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         desc_frame.pack(fill="x", padx=40, pady=10)
         desc_lbl = ctk.CTkLabel(desc_frame, text="Intenta reconstruir la estructura y la tabla de referencias (XREF) de archivos dañados.\nÚtil si el PDF no se abre o muestra errores al cargar.",
                                 font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MAIN, wraplength=800)
         desc_lbl.pack()
 
-        # Marco de Contenido Principal
+        # Main Content Frame
         content_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Selección de PDF de Entrada
+        # Input PDF Selection
         input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         input_frame.pack(fill="x", pady=20, padx=20)
         
@@ -39,7 +39,7 @@ class RepairPage(BasePage):
         ctk.CTkButton(input_frame, text="Explorar...", command=self.browse_pdf, width=120, height=40,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold")).pack(side="left", padx=20, pady=20)
 
-        # Botón de Acción
+        # Action Button
         ctk.CTkButton(self.content_frame, text="Reparar PDF", command=self.repair_pdf, 
                       fg_color=Theme.SUCCESS, hover_color="#0C955A", font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=40)
         

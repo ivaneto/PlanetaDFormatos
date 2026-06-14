@@ -42,62 +42,62 @@ class MainWindow(ctk.CTk, TkinterDnD.DnDWrapper):
         self.geometry("1400x900")
         self.configure(fg_color=Theme.BACKGROUND)
         
-        self.grid_columnconfigure(0, weight=0) # Barra lateral
-        self.grid_columnconfigure(1, weight=1) # Contenido
+        self.grid_columnconfigure(0, weight=0) # Sidebar
+        self.grid_columnconfigure(1, weight=1) # Content
         self.grid_rowconfigure(0, weight=1)
         
         self.create_widgets()
         self.show_dashboard()
         
     def create_widgets(self):
-        # Marco de la barra lateral
+        # Sidebar frame
         self.sidebar_frame = ctk.CTkScrollableFrame(self, width=100, corner_radius=0, fg_color=Theme.SIDEBAR_BG)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         
-        # Iconos/Botones de la barra lateral
-        # Botón de Inicio
+        # Sidebar icons/buttons
+        # Home button
         self.btn_home = ctk.CTkButton(self.sidebar_frame, text="🏠", width=50, height=50,
                                       fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                       font=("Arial", 24), command=self.show_dashboard)
         self.btn_home.pack(pady=(20, 10), padx=10)
 
-        # Botón del Visualizador
+        # Visualizer button
         self.btn_viz = ctk.CTkButton(self.sidebar_frame, text="📖", width=50, height=50,
                                        fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                        font=("Arial", 24), command=lambda: self.show_page(VisualizationPage))
         self.btn_viz.pack(pady=10, padx=10)
 
-        # Organizar PDF
+        # Organize PDF
         self.btn_rotate = ctk.CTkButton(self.sidebar_frame, text="🔄", width=50, height=50,
                                         fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                         font=("Arial", 24), command=lambda: self.show_page(RotatePage))
         self.btn_rotate.pack(pady=10, padx=10)
 
-        # Fusionar PDF
+        # Merge PDF
         self.btn_merge = ctk.CTkButton(self.sidebar_frame, text="📄", width=50, height=50,
                                        fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                        font=("Arial", 24), command=lambda: self.show_page(MergePage))
         self.btn_merge.pack(pady=10, padx=10)
 
-        # División Múltiple
+        # Multi Split
         self.btn_multi = ctk.CTkButton(self.sidebar_frame, text="📑", width=50, height=50,
                                        fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                        font=("Arial", 24), command=lambda: self.show_page(MultiSplitPage))
         self.btn_multi.pack(pady=10, padx=10)
 
-        # Recortar PDF
+        # Crop PDF
         self.btn_crop = ctk.CTkButton(self.sidebar_frame, text="✂️", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(CropPage))
         self.btn_crop.pack(pady=10, padx=10)
 
-        # Imágenes a PDF
+        # Images to PDF
         self.btn_img2pdf = ctk.CTkButton(self.sidebar_frame, text="🖼️", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(Img2PdfPage))
         self.btn_img2pdf.pack(pady=10, padx=10)
 
-        # Números de Página
+        # Page Numbers
         self.btn_pagenum = ctk.CTkButton(self.sidebar_frame, text="#", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(PageNumbersPage))
@@ -109,37 +109,37 @@ class MainWindow(ctk.CTk, TkinterDnD.DnDWrapper):
                                          font=("Arial", 24), command=lambda: self.show_page(OCRPage))
         self.btn_ocr.pack(pady=10, padx=10)
 
-        # Marca de Agua
+        # Watermark
         self.btn_watermark = ctk.CTkButton(self.sidebar_frame, text="💧", width=50, height=50,
                                            fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                            font=("Arial", 24), command=lambda: self.show_page(WatermarkPage))
         self.btn_watermark.pack(pady=10, padx=10)
 
-        # Redactar PDF
+        # Redact PDF
         self.btn_redact = ctk.CTkButton(self.sidebar_frame, text="⬛", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(RedactPage))
         self.btn_redact.pack(pady=10, padx=10)
 
-        # Editar PDF
+        # Edit PDF
         self.btn_edit = ctk.CTkButton(self.sidebar_frame, text="✏️", width=50, height=50,
                                        fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                        font=("Arial", 24), command=lambda: self.show_page(EditPdfPage))
         self.btn_edit.pack(pady=10, padx=10)
 
-        # Firmar PDF
+        # Sign PDF
         self.btn_sign = ctk.CTkButton(self.sidebar_frame, text="✍️", width=50, height=50,
                                        fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                        font=("Arial", 24), command=lambda: self.show_page(SignPdfPage))
         self.btn_sign.pack(pady=10, padx=10)
 
-        # Rellenador de Formularios (Nuevo)
+        # Form Filler (New)
         self.btn_form = ctk.CTkButton(self.sidebar_frame, text="📝", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(FormFillerPage))
         self.btn_form.pack(pady=10, padx=10)
 
-        # Herramientas / Conversión (Nueva Página)
+        # Tools / Conversion (New Page)
         self.btn_tools = ctk.CTkButton(self.sidebar_frame, text="🛠️", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(ConversionToolsPage))
@@ -151,69 +151,69 @@ class MainWindow(ctk.CTk, TkinterDnD.DnDWrapper):
                                          font=("Arial", 24), command=lambda: self.show_page(PdfaPage))
         self.btn_pdfa.pack(pady=10, padx=10)
 
-        # Proteger PDF
+        # Protect PDF
         self.btn_protect = ctk.CTkButton(self.sidebar_frame, text="🛡️", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(ProtectPage))
         self.btn_protect.pack(pady=10, padx=10)
 
-        # Desbloquear PDF
+        # Unlock PDF
         self.btn_unlock = ctk.CTkButton(self.sidebar_frame, text="🔓", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(UnlockPage))
         self.btn_unlock.pack(pady=10, padx=10)
 
-        # Metadatos PDF
+        # PDF Metadata
         self.btn_metadata = ctk.CTkButton(self.sidebar_frame, text="ℹ️", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(MetadataPage))
         self.btn_metadata.pack(pady=10, padx=10)
 
-        # Reparar PDF
+        # Repair PDF
         self.btn_repair = ctk.CTkButton(self.sidebar_frame, text="🩹", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(RepairPage))
         self.btn_repair.pack(pady=10, padx=10)
         
-        # Comprimir PDF
+        # Compress PDF
         self.btn_compress = ctk.CTkButton(self.sidebar_frame, text="📉", width=50, height=50,
                                           fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                           font=("Arial", 24), command=lambda: self.show_page(CompressPage))
         self.btn_compress.pack(pady=10, padx=10)
 
-        # Aplanar (Flatten) PDF
+        # Flatten PDF
         self.btn_flatten = ctk.CTkButton(self.sidebar_frame, text="🔨", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(FlattenPage))
         self.btn_flatten.pack(pady=10, padx=10)
         
-        # Convertir (Word)
+        # Convert (Word)
         self.btn_convert = ctk.CTkButton(self.sidebar_frame, text="📝", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(Pdf2WordPage))
         self.btn_convert.pack(pady=10, padx=10)
 
-        # Word a PDF
+        # Word to PDF
         self.btn_word2pdf = ctk.CTkButton(self.sidebar_frame, text="W", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(Word2PdfPage))
         self.btn_word2pdf.pack(pady=10, padx=10)
 
-        # PPT a PDF
+        # PPT to PDF
         self.btn_ppt2pdf = ctk.CTkButton(self.sidebar_frame, text="P", width=50, height=50,
                                          fg_color="transparent", hover_color=Theme.PRIMARY_HOVER,
                                          font=("Arial", 24), command=lambda: self.show_page(Ppt2PdfPage))
         self.btn_ppt2pdf.pack(pady=10, padx=10)
         
-        # Área de Contenido
+        # Content Area
         self.content_area = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.content_area.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         
-        # Barra Superior
+        # Top Bar
         self.top_bar = ctk.CTkFrame(self.content_area, height=60, fg_color="transparent")
         self.top_bar.pack(fill="x", pady=(0, 20))
         
-        # Logo / Título en la Barra Superior
+        # Logo / Title on Top Bar
         ctk.CTkLabel(self.top_bar, text="Planeta De Formatos -> PDF", 
                      font=(Theme.FONT_FAMILY, 28, "bold"), text_color=Theme.PRIMARY).pack(side="left")
 
@@ -236,7 +236,7 @@ class MainWindow(ctk.CTk, TkinterDnD.DnDWrapper):
         if not isinstance(self.current_page, DashboardPage):
             return
 
-        # Lógica para determinar qué herramienta abrir basándose en el tipo de archivo
+        # Logic to determine which tool to open based on file type
         pdfs = [f for f in files if f.lower().endswith('.pdf')]
         images = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
         words = [f for f in files if f.lower().endswith(('.docx', '.doc'))]

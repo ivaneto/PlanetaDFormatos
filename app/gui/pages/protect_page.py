@@ -13,32 +13,32 @@ class ProtectPage(BasePage):
         self.full_input_path = ""
         self.input_pdf = tk.StringVar()
         
-        # Contraseñas
+        # Passwords
         self.user_pw = tk.StringVar()
         self.owner_pw = tk.StringVar()
         
-        # Permisos
+        # Permissions
         self.perm_print = tk.BooleanVar(value=True)
         self.perm_copy = tk.BooleanVar(value=True)
         self.perm_edit = tk.BooleanVar(value=True)
         self.perm_annot = tk.BooleanVar(value=True)
 
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Proteger PDF", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        # Descripción
+        # Description
         desc_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         desc_frame.pack(fill="x", padx=40, pady=10)
         desc_lbl = ctk.CTkLabel(desc_frame, text="Establece contraseñas para restringir el acceso o los permisos de tu archivo PDF.",
                                 font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MAIN)
         desc_lbl.pack()
 
-        # Contenido principal con desplazamiento (Scrollable)
+        # Main Scrollable Content
         content_frame = ctk.CTkScrollableFrame(self.content_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Sección de PDF de entrada
+        # Input PDF Section
         input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         input_frame.pack(fill="x", pady=10, padx=20)
         ctk.CTkLabel(input_frame, text="PDF de Entrada:", font=(Theme.FONT_FAMILY, 14, "bold"), text_color=Theme.TEXT_MAIN).pack(side="left", padx=20, pady=20)
@@ -48,19 +48,19 @@ class ProtectPage(BasePage):
         ctk.CTkButton(input_frame, text="Explorar...", command=self.browse_pdf, width=100,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=20, pady=20)
 
-        # Sección de Contraseñas
+        # Password Section
         pw_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         pw_frame.pack(fill="x", pady=10, padx=20)
         
         ctk.CTkLabel(pw_frame, text="Contraseñas", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=10, padx=20, anchor="w")
         
-        # Contraseña de Usuario
+        # User Password
         row1 = ctk.CTkFrame(pw_frame, fg_color="transparent")
         row1.pack(fill="x", padx=20, pady=5)
         ctk.CTkLabel(row1, text="Contraseña de Usuario (Abrir):", width=200, anchor="w", text_color=Theme.TEXT_MAIN).pack(side="left")
         ctk.CTkEntry(row1, textvariable=self.user_pw, show="*", width=300).pack(side="left", fill="x", expand=True)
         
-        # Contraseña de Propietario
+        # Owner Password
         row2 = ctk.CTkFrame(pw_frame, fg_color="transparent")
         row2.pack(fill="x", padx=20, pady=5)
         ctk.CTkLabel(row2, text="Contraseña de Propietario (Edit):", width=200, anchor="w", text_color=Theme.TEXT_MAIN).pack(side="left")
@@ -69,7 +69,7 @@ class ProtectPage(BasePage):
         ctk.CTkLabel(pw_frame, text="* La contraseña de propietario es necesaria para cambiar permisos en el futuro.", 
                      font=(Theme.FONT_FAMILY, 12, "italic"), text_color="gray").pack(pady=10, padx=20, anchor="w")
 
-        # Sección de Permisos
+        # Permissions Section
         perm_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
         perm_frame.pack(fill="x", pady=10, padx=20)
         
@@ -83,7 +83,7 @@ class ProtectPage(BasePage):
         ctk.CTkCheckBox(grid, text="Editar Contenido", variable=self.perm_edit, fg_color=Theme.PRIMARY).pack(side="left", padx=20)
         ctk.CTkCheckBox(grid, text="Anotaciones", variable=self.perm_annot, fg_color=Theme.PRIMARY).pack(side="left", padx=20)
 
-        # Botón de acción
+        # Action Button
         ctk.CTkButton(self.content_frame, text="Proteger PDF", command=self.protect_pdf, 
                       fg_color=Theme.SUCCESS, hover_color="#0C955A", font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=20)
         
@@ -122,7 +122,7 @@ class ProtectPage(BasePage):
         user_pw = self.user_pw.get()
         owner_pw = self.owner_pw.get()
         
-        # Comprobar si algún permiso está restringido (desmarcado)
+        # Check if any permission is restricted (unchecked)
         permissions_restricted = not (self.perm_print.get() and 
                                     self.perm_copy.get() and 
                                     self.perm_edit.get() and 
@@ -148,7 +148,7 @@ class ProtectPage(BasePage):
         if not output_path:
             return
             
-        # Calcular la máscara de permisos
+        # Calculate permissions mask
         perms = fitz.PDF_PERM_ACCESSIBILITY
         
         if self.perm_print.get(): perms |= fitz.PDF_PERM_PRINT

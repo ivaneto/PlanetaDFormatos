@@ -8,7 +8,7 @@ from PIL import Image, ImageTk
 import fitz # PyMuPDF
 import os
 
-# Páginas de Destino para Accesos Directos
+# Shortcut Destination Pages
 from app.gui.pages.rotate_page import RotatePage
 from app.gui.pages.merge_page import MergePage
 from app.gui.pages.crop_page import CropPage
@@ -21,7 +21,7 @@ from app.gui.pages.ocr_page import OCRPage
 
 class VisualizationPage(BasePage):
     def create_widgets(self):
-        self.tool_mode = "select" # Por defecto seleccionar
+        self.tool_mode = "select" # Default select
         self.doc = None
         self.current_page_idx = 0
         self.zoom_level = 1.0
@@ -38,18 +38,18 @@ class VisualizationPage(BasePage):
         self.offset_x = 0
         self.offset_y = 0
         self.page_layouts = []
-        self.page_images = {} # Usar dict para lazy loading idx: tk_img
+        self.page_images = {} # Use dict for lazy loading idx: tk_img
         self.page_chars_cache = {}
-        self.rendering_queue = set() # Páginas pendientes de renderizado
+        self.rendering_queue = set() # Pages pending rendering
         self.render_after_id = None
 
-        # --- Barra de herramientas ---
+        # --- Toolbar ---
         self.toolbar = ctk.CTkFrame(self.content_frame, height=50, fg_color=Theme.CARD_BG_N1)
         self.toolbar.pack(fill="x", side="top")
         
         self.create_toolbar()
         
-        # --- Área Principal ---
+        # --- Main Area ---
         self.canvas_container = ctk.CTkFrame(self.content_frame, fg_color="gray90")
         self.canvas_container.pack(fill="both", expand=True)
         
@@ -64,35 +64,35 @@ class VisualizationPage(BasePage):
         self.h_scroll.pack(side="bottom", fill="x")
         self.canvas.pack(side="left", fill="both", expand=True)
         
-        # Debounce para el scroll
+        # Scroll debounce
         self.canvas.bind("<Configure>", self.on_configure)
         self.v_scroll.configure(command=self.on_v_scroll)
         
-        # Vinculaciones (Bindings)
+        # Bindings
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_down)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_mouse_up)
-        # Rueda del ratón
+        # Mouse wheel
         self.canvas.bind("<MouseWheel>", self.on_mouse_wheel) 
-        # Rueda del ratón en Linux
+        # Mouse wheel on Linux
         # self.canvas.bind("<Button-4>", self.on_mouse_wheel)
         # self.canvas.bind("<Button-5>", self.on_mouse_wheel)
         
-        # Atajos de teclado
+        # Keyboard shortcuts
         self.canvas.bind("<Control-c>", lambda e: self.copy_selection())
         self.canvas.focus_set()
 
         self.show_welcome()
 
     def create_toolbar(self):
-        # Abrir
+        # Open
         btn_open = ctk.CTkButton(self.toolbar, text="📂 Abrir", width=80, command=self.select_file)
         btn_open.pack(side="left", padx=5, pady=5)
         
-        # Separador
+        # Separator
         tk.Frame(self.toolbar, width=1, bg="gray50").pack(side="left", fill="y", padx=5, pady=10)
 
-        # Navegación
+        # Navigation
         self.btn_prev = ctk.CTkButton(self.toolbar, text="<", width=30, command=self.prev_page)
         self.btn_prev.pack(side="left", padx=2)
         
@@ -120,12 +120,12 @@ class VisualizationPage(BasePage):
 
         tk.Frame(self.toolbar, width=1, bg="gray50").pack(side="left", fill="y", padx=5, pady=10)
 
-        # Herramientas
+        # Tools
         self.btn_hand = ctk.CTkButton(self.toolbar, text="🖐️", width=40, 
                                       fg_color=Theme.PRIMARY, command=lambda: self.set_tool("hand"))
         self.btn_hand.pack(side="left", padx=2)
         
-        # Botón de Acceso Directo a Herramientas
+        # Tools Shortcut Button
         self.btn_tools = ctk.CTkButton(self.toolbar, text="🛠", width=40, 
                                        fg_color="#333333", hover_color="#555555",
                                        command=self.open_tools_dialog)
@@ -141,7 +141,7 @@ class VisualizationPage(BasePage):
 
         tk.Frame(self.toolbar, width=1, bg="gray50").pack(side="left", fill="y", padx=5, pady=10)
 
-        # Búsqueda
+        # Search
         self.entry_search = ctk.CTkEntry(self.toolbar, width=150, placeholder_text="Buscar...")
         self.entry_search.pack(side="left", padx=2)
         self.entry_search.bind("<Return>", lambda e: self.perform_search())
@@ -178,7 +178,7 @@ class VisualizationPage(BasePage):
             self.page_images = {}
             self.page_chars_cache = {}
             
-            # Resetear canvas y scroll antes de calcular
+            # Reset canvas and scroll before calculating
             self.canvas.delete("all")
             self.canvas.yview_moveto(0)
             
@@ -188,7 +188,7 @@ class VisualizationPage(BasePage):
 
     def on_configure(self, event):
         if self.doc:
-            # Si hay documento pero no hay layouts (recién cargado o redimensionado desde 0), forzar layout
+            # If doc exists but no layouts (fresh loaded or resized from 0), force layout
             if not self.page_layouts:
                 self.queue_update_layout()
             else:
@@ -206,13 +206,13 @@ class VisualizationPage(BasePage):
         cv_width = self.canvas.winfo_width()
         cv_height = self.canvas.winfo_height()
         
-        # Si el canvas es muy pequeño, probablemente aún no se ha dibujado.
-        # Diferir la actualización hasta que tenga tamaño real.
+        # If canvas is too small, it probably hasn't been drawn yet.
+        # Defer update until it has real size.
         if cv_width < 50 or cv_height < 50:
              self.after(100, self.update_layout)
              return
 
-        # Limpiar canvas e imágenes antiguas (especialmente al cambiar zoom)
+        # Clear canvas and old images (especially when changing zoom)
         self.canvas.delete("all")
         self.page_images = {}
         self.page_layouts = []
@@ -223,7 +223,7 @@ class VisualizationPage(BasePage):
         
         for i in range(len(self.doc)):
             page = self.doc[i]
-            # Usar dimensiones originales para calcular el layout con el zoom
+            # Use original dimensions to calculate layout with zoom
             p_rect = page.rect
             w = p_rect.width * self.zoom_level
             h = p_rect.height * self.zoom_level
@@ -237,12 +237,12 @@ class VisualizationPage(BasePage):
                 "height": h
             })
             
-            # Crear un rectángulo de marcador de posición (placeholder)
-            # Usar tags para poder reemplazarlo luego
+            # Create a placeholder rectangle
+            # Use tags to replace it later
             self.canvas.create_rectangle(offset_x, current_y, offset_x + w, current_y + h, 
                                          fill="white", outline="gray90", tags=(f"placeholder_{i}", "placeholder"))
             
-            # Texto indicador de carga
+            # Loading text indicator
             self.canvas.create_text(offset_x + w/2, current_y + h/2, text=f"Página {i+1}", 
                                     fill="gray80", font=("Arial", 16), tags=(f"loading_text_{i}", "placeholder"))
             
@@ -251,12 +251,12 @@ class VisualizationPage(BasePage):
 
         self.canvas.config(scrollregion=(0, 0, max(max_w, cv_width), current_y))
         
-        # Actualizar Controles
+        # Update Controls
         self.entry_page.delete(0, "end")
         self.entry_page.insert(0, str(self.current_page_idx + 1))
         self.lbl_zoom.configure(text=f"{int(self.zoom_level * 100)}%")
         
-        # Renderizar páginas visibles inmediatamente después de actualizar el layout
+        # Render visible pages immediately after updating layout
         self.render_visible_pages()
 
     def queue_render_visible(self):
@@ -267,7 +267,7 @@ class VisualizationPage(BasePage):
     def render_visible_pages(self):
         if not self.doc: return
         
-        # Obtener el área visible del canvas
+        # Get canvas visible area
         y_top = self.canvas.canvasy(0)
         y_bottom = y_top + self.canvas.winfo_height()
         
@@ -278,7 +278,7 @@ class VisualizationPage(BasePage):
             p_top = layout["y_offset"]
             p_bottom = p_top + layout["height"]
             
-            # Si la página está en el área visible (con margen) y no se ha renderizado
+            # If page is in visible area (with margin) and hasn't been rendered
             if p_top < y_bottom + margin and p_bottom > y_top - margin:
                 if i not in self.page_images:
                     self.render_page_at_index(i)
@@ -298,7 +298,7 @@ class VisualizationPage(BasePage):
         tk_img = ImageTk.PhotoImage(pil_img)
         self.page_images[idx] = tk_img
         
-        # Reemplazar placeholder con la imagen real
+        # Replace placeholder with actual image
         self.canvas.delete(f"placeholder_{idx}")
         self.canvas.delete(f"loading_text_{idx}")
         self.canvas.create_image(layout["x_offset"], layout["y_offset"], image=tk_img, anchor="nw", tags=(f"page_{idx}", "bg"))
@@ -307,7 +307,7 @@ class VisualizationPage(BasePage):
     def on_v_scroll(self, *args):
         self.canvas.yview(*args)
         self.queue_render_visible()
-        # Actualizar current_page_idx basado en scroll
+        # Update current_page_idx based on scroll
         y_mid = self.canvas.canvasy(self.canvas.winfo_height() // 2)
         for i, layout in enumerate(self.page_layouts):
             if layout["y_offset"] <= y_mid <= layout["y_offset"] + layout["height"] + 30:
@@ -379,12 +379,12 @@ class VisualizationPage(BasePage):
         self.page_chars = []
         raw = page.get_text("rawdict")
         line_idx = 0
-        # Estructura aplanada: bloques -> líneas -> intervalos (spans) -> caracteres
+        # Flattened structure: blocks -> lines -> spans -> characters
         for block in raw.get("blocks", []):
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     for char in span.get("chars", []):
-                        # claves de char: 'bbox' (rect), 'c' (caracter), 'origin'
+                        # char keys: 'bbox' (rect), 'c' (char), 'origin'
                         self.page_chars.append({
                             "bbox": char["bbox"],
                             "c": char["c"],
@@ -396,7 +396,7 @@ class VisualizationPage(BasePage):
         cx = self.canvas.canvasx(x)
         cy = self.canvas.canvasy(y)
         
-        # Encontrar página bajo el ratón
+        # Find page under mouse
         target_idx = -1
         layout = None
         for i, l in enumerate(self.page_layouts):
@@ -407,13 +407,13 @@ class VisualizationPage(BasePage):
         
         if target_idx == -1: return None
         
-        # Cambiar página actual si es necesario
+        # Change current page if necessary
         if target_idx != self.current_page_idx:
             self.current_page_idx = target_idx
             self.entry_page.delete(0, "end")
             self.entry_page.insert(0, str(self.current_page_idx + 1))
 
-        # Obtener caracteres de esta página
+        # Get characters of this page
         if target_idx not in self.page_chars_cache:
             self._parse_page_chars(self.doc[target_idx])
             self.page_chars_cache[target_idx] = self.page_chars
@@ -514,14 +514,14 @@ class VisualizationPage(BasePage):
             chars_text.append(char['c'])
             last_char = char
             
-            # Fusión Visual
+            # Visual Fusion
             c_box = char["bbox"]
             if char["line"] != current_line_idx:
                 if current_rect: rects_to_draw.append(current_rect)
                 current_rect = list(c_box)
                 current_line_idx = char["line"]
             else:
-                # Combinar: Unión de rectángulos
+                # Merge: Union of rectangles
                 current_rect[0] = min(current_rect[0], c_box[0])
                 current_rect[1] = min(current_rect[1], c_box[1])
                 current_rect[2] = max(current_rect[2], c_box[2])
@@ -531,7 +531,7 @@ class VisualizationPage(BasePage):
         
         self.selected_text = "".join(chars_text)
         
-        # Dibujar rectángulos combinados
+        # Draw combined rectangles
         layout = self.page_layouts[self.current_page_idx]
         for r in rects_to_draw:
             sx0 = (r[0] * self.zoom_level) + layout["x_offset"]
@@ -554,7 +554,7 @@ class VisualizationPage(BasePage):
     def perform_search(self):
         term = self.entry_search.get()
         if not term:
-            # Limpiar búsqueda si está vacía
+            # Clear search if empty
             self.search_term = ""
             self.search_results = []
             self.current_search_idx = -1
@@ -564,15 +564,15 @@ class VisualizationPage(BasePage):
 
         if not self.doc: return
         
-        # Restablecer si el término es nuevo
+        # Reset if term is new
         if term != self.search_term:
             self.search_term = term
             self.search_results = []
             
-            # Búsqueda precisa: usar quads=True para obtener ubicaciones exactas (corrige TypeError 'quad')
+            # Precise search: use quads=True for exact locations (fixes TypeError 'quad')
             for i in range(len(self.doc)):
                 page = self.doc[i]
-                # search_for con quads=True devuelve una lista de Quads
+                # search_for with quads=True returns a list of Quads
                 try:
                     res = page.search_for(term, quads=True)
                 except TypeError:
@@ -613,7 +613,7 @@ class VisualizationPage(BasePage):
         target_page_idx, _ = self.search_results[self.current_search_idx]
         self.current_page_idx = target_page_idx
         self.update_scroll_to_page(target_page_idx)
-        # Resaltado activo se maneja en draw_search_highlights que se llama indirectamente o redibuja
+        # Active highlight handled in draw_search_highlights called indirectly or redraws
         self.draw_search_highlights()
             
     def draw_search_highlights(self):
@@ -643,7 +643,7 @@ class VisualizationPage(BasePage):
         return (self.winfo_rootx(), self.winfo_rooty())
 
     # -------------------------------------------------------------------------
-    # Lógica del Diálogo de Herramientas
+    # Tool Dialog Logic
     # -------------------------------------------------------------------------
     def open_tools_dialog(self):
         dialog = ctk.CTkToplevel(self)
@@ -658,7 +658,7 @@ class VisualizationPage(BasePage):
         
         ctk.CTkLabel(dialog, text="¿Qué quieres hacer?", font=(Theme.FONT_FAMILY, 18, "bold")).pack(pady=20)
         
-        # Opciones
+        # Options
         self.tool_var = tk.StringVar(value="rotate")
         
         options = [
@@ -674,7 +674,7 @@ class VisualizationPage(BasePage):
 
         ]
         
-        # Mapeo a clases
+        # Mapping to classes
         self.tool_map = {tag: cls for _, tag, cls in options}
         
         opts_frame = ctk.CTkFrame(dialog, fg_color="transparent")
@@ -699,7 +699,7 @@ class VisualizationPage(BasePage):
         
         if self.doc and hasattr(self.doc, "name") and self.doc.name:
              pdf_path = self.doc.name
-             # Asegurarse de que sea una ruta de archivo real
+             # Ensure it is a real file path
              if not os.path.exists(pdf_path):
                  pdf_path = None
             

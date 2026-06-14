@@ -11,29 +11,29 @@ class PDFOperations:
     @staticmethod
     def create_cropped_pdf(pdf_path, output_path, page_crops):
         """
-        Crear un nuevo PDF que contenga solo las páginas recortadas seleccionadas.
-        Si una página tiene varios recortes, generará varias páginas de salida.
-        :param pdf_path: Ruta del PDF de origen.
-        :param output_path: Ruta del PDF de destino.
-        :param page_crops: Dict {índice_página: [(x0, y0, x1, y1), ...]} que mapea índices de página a listas de cuadros de recorte.
+        Create a new PDF containing only selected cropped pages.
+        If a page has multiple crops, it will generate multiple output pages.
+        :param pdf_path: Source PDF path.
+        :param output_path: Destination PDF path.
+        :param page_crops: Dict {page_index: [(x0, y0, x1, y1), ...]} mapping page indices to lists of crop boxes.
         """
         doc = fitz.open(pdf_path)
         out_doc = fitz.open()
         
-        # Ordenar las páginas para mantener el orden
+        # Sort pages to maintain order
         sorted_pages = sorted(page_crops.keys())
         
         for page_num in sorted_pages:
             crops = page_crops[page_num]
-            # Manejar tanto la tupla única como la lista de tuplas
+            # Handle both single tuple and list of tuples
             if not isinstance(crops, list):
                 crops = [crops]
                 
             for crop_rect in crops:
-                # Insertar en el nuevo documento
+                # Insert into new document
                 out_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
                 
-                # Ahora establecer el recorte en la nueva página
+                # Now set the crop on the new page
                 new_page = out_doc[-1]
                 rect = fitz.Rect(crop_rect)
                 
@@ -47,13 +47,13 @@ class PDFOperations:
     @staticmethod
     def apply_crops_to_pdf(pdf_path, output_path, page_crops):
         """
-        Crear un nuevo PDF que incluya TODAS las páginas del origen.
-        - Las páginas SIN recortes se incluyen tal cual.
-        - Las páginas CON recortes se "explotan": la página se repite por cada recorte definido, 
-          aplicando el recorte. La página completa original NO se incluye si existen recortes.
-        :param pdf_path: Ruta del PDF de origen.
-        :param output_path: Ruta del PDF de destino.
-        :param page_crops: Dict {índice_página: [(x0, y0, x1, y1), ...]}
+        Create a new PDF that includes ALL source pages.
+        - Pages WITHOUT crops are included as is.
+        - Pages WITH crops are "exploded": the page is repeated for each defined crop, 
+          applying the crop. The original full page is NOT included if crops exist.
+        :param pdf_path: Source PDF path.
+        :param output_path: Destination PDF path.
+        :param page_crops: Dict {page_index: [(x0, y0, x1, y1), ...]}
         """
         doc = fitz.open(pdf_path)
         out_doc = fitz.open()
@@ -61,9 +61,9 @@ class PDFOperations:
         total_pages = len(doc)
         
         for i in range(total_pages):
-            # Comprobar si esta página tiene recortes
+            # Check if this page has crops
             if i in page_crops and page_crops[i]:
-                # Explotar esta página en múltiples páginas recortadas
+                # Explode this page into multiple cropped pages
                 crops = page_crops[i]
                 if not isinstance(crops, list):
                     crops = [crops]
@@ -73,7 +73,7 @@ class PDFOperations:
                     new_page = out_doc[-1]
                     new_page.set_cropbox(fitz.Rect(crop_rect))
             else:
-                # Sin recortes, incluir la página original tal cual
+                # No crops, include original page as is
                 out_doc.insert_pdf(doc, from_page=i, to_page=i)
                 
         out_doc.save(output_path)
@@ -83,10 +83,10 @@ class PDFOperations:
     @staticmethod
     def compare_pdfs(file1_path, file2_path, output_path):
         """
-        Comparar dos PDFs extrayendo el texto y generando un informe de diferencias.
-        :param file1_path: Ruta al primer PDF
-        :param file2_path: Ruta al segundo PDF
-        :param output_path: Ruta para guardar el informe de comparación (TXT)
+        Compare two PDFs by extracting text and generating a diff report.
+        :param file1_path: Path to first PDF
+        :param file2_path: Path to second PDF
+        :param output_path: Path to save comparison report (TXT)
         """
         text1 = []
         text2 = []
@@ -120,18 +120,18 @@ class PDFOperations:
     @staticmethod
     def add_page_numbers(pdf_path, output_path, position='bottom-right'):
         """
-        Añadir números de página a un PDF.
-        :param pdf_path: Ruta al PDF de origen
-        :param output_path: Ruta para guardar el PDF modificado
-        :param position: Posición del número de página (actualmente solo se admite 'bottom-right')
+        Add page numbers to a PDF.
+        :param pdf_path: Path to source PDF
+        :param output_path: Path to save modified PDF
+        :param position: Page number position (currently only 'bottom-right' is supported)
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
 
         for i, page in enumerate(reader.pages):
-            # Crear un PDF temporal con el número de página
+            # Create a temporary PDF with page number
             packet = io.BytesIO()
-            # Usar el tamaño de página de la página original si es posible, de lo contrario por defecto a letter
+            # Use the original page size if possible, otherwise default to letter
             width = float(page.mediabox.width)
             height = float(page.mediabox.height)
             
@@ -146,7 +146,7 @@ class PDFOperations:
             elif position == 'bottom-left':
                 c.drawString(50, 20, page_num_text)
             else:
-                c.drawString(width - 50, 20, page_num_text) # Por defecto
+                c.drawString(width - 50, 20, page_num_text) # Default
                 
             c.save()
             packet.seek(0)
@@ -161,11 +161,11 @@ class PDFOperations:
     @staticmethod
     def rotate_pages(pdf_path, output_path, rotation=90, page_indices=None):
         """
-        Rotar páginas en un PDF.
-        :param pdf_path: Ruta al PDF de origen
-        :param output_path: Ruta para guardar el PDF modificado
-        :param rotation: Grados a rotar (en sentido horario: 90, 180, 270)
-        :param page_indices: Lista de índices de página (empezando por 0) para rotar. Si es None, rota todas.
+        Rotate pages in a PDF.
+        :param pdf_path: Path to source PDF
+        :param output_path: Path to save modified PDF
+        :param rotation: Degrees to rotate (clockwise: 90, 180, 270)
+        :param page_indices: List of page indices (starting with 0) to rotate. If None, rotates all.
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
@@ -181,9 +181,9 @@ class PDFOperations:
     @staticmethod
     def compress_pdf(pdf_path, output_path):
         """
-        Esta es una compresión sin pérdidas (en su mayoría) y podría no reducir significativamente el tamaño de las imágenes.
-        :param pdf_path: Ruta al PDF de origen
-        :param output_path: Ruta para guardar el PDF comprimido
+        This is lossless compression (mostly) and might not significantly reduce image size.
+        :param pdf_path: Path to source PDF
+        :param output_path: Path to save compressed PDF
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
@@ -201,9 +201,9 @@ class PDFManager:
     @staticmethod
     def merge_pdfs(pdf_list, output_path):
         """
-        Fusionar una lista de archivos PDF en un único PDF.
-        :param pdf_list: Lista de rutas a archivos PDF
-        :param output_path: Ruta para guardar el PDF fusionado
+        Merge a list of PDF files into a single PDF.
+        :param pdf_list: List of paths to PDF files
+        :param output_path: Path to save merged PDF
         """
         merger = PdfWriter()
         for pdf in pdf_list:
@@ -214,13 +214,13 @@ class PDFManager:
     @staticmethod
     def create_from_pages(pages_list, output_path):
         """
-        Crear un nuevo PDF a partir de una lista de páginas específicas.
-        :param pages_list: Lista de diccionarios {'path': str, 'page': int, 'rotation': int (opcional)}
-        :param output_path: Ruta para guardar el nuevo PDF
+        Create a new PDF from a list of specific pages.
+        :param pages_list: List of dictionaries {'path': str, 'page': int, 'rotation': int (optional)}
+        :param output_path: Path to save new PDF
         """
         out_doc = fitz.open()
         
-        # Caché de documentos abiertos
+        # Cache of open documents
         docs = {}
         
         try:
@@ -234,12 +234,12 @@ class PDFManager:
                 
                 src_doc = docs[path]
                 
-                # Comprobar los límites
+                # Check bounds
                 if page_num < len(src_doc):
-                    # parámetros de insert_pdf: from_page, to_page (inclusive)
-                    # rotate: rota la página insertada por este ángulo relativo al actual.
+                    # insert_pdf params: from_page, to_page (inclusive)
+                    # rotate: rotates inserted page by this angle relative to current.
                     
-                    # Vamos a insertar primero, luego rotar la última página de out_doc.
+                    # Let's insert first, then rotate the last page of out_doc.
                     out_doc.insert_pdf(src_doc, from_page=page_num, to_page=page_num)
                     
                     if rotation != 0:
@@ -260,9 +260,9 @@ class PDFManager:
     @staticmethod
     def split_pdf(pdf_path, output_dir):
         """
-        Dividir un PDF en páginas individuales.
-        :param pdf_path: Ruta al archivo PDF
-        :param output_dir: Directorio para guardar las páginas divididas
+        Split a PDF into individual pages.
+        :param pdf_path: Path to PDF file
+        :param output_dir: Directory to save split pages
         """
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -281,29 +281,29 @@ class PDFManager:
     @staticmethod
     def add_watermark(pdf_path, output_path, watermark_text=None, watermark_image=None, opacity=0.5, rotation=45):
         """
-        Añadir una marca de agua (texto o imagen) a un PDF.
-        :param pdf_path: Ruta al PDF de entrada
-        :param output_path: Ruta para guardar el PDF con marca de agua
-        :param watermark_text: Texto a usar como marca de agua
-        :param watermark_image: Ruta a la imagen a usar como marca de agua
-        :param opacity: Opacidad de la marca de agua (0.0 a 1.0)
-        :param rotation: Ángulo de rotación en grados
+        Add a watermark (text or image) to a PDF.
+        :param pdf_path: Path to input PDF
+        :param output_path: Path to save watermarked PDF
+        :param watermark_text: Text to use as watermark
+        :param watermark_image: Path to image to use as watermark
+        :param opacity: Watermark opacity (0.0 to 1.0)
+        :param rotation: Rotation angle in degrees
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
 
-        # Crear el PDF de la marca de agua en memoria
+        # Create watermark PDF in memory
         packet = io.BytesIO()
-        # Usar el tamaño de página por defecto, pero ajustaremos la escala más tarde si es necesario
+        # Use default page size, but we will adjust scale later if necessary
         c = canvas.Canvas(packet, pagesize=letter)
         
-        # Establecer transparencia
+        # Set transparency
         c.setFillAlpha(opacity)
         c.setStrokeAlpha(opacity)
 
         if watermark_text:
             c.saveState()
-            c.translate(300, 400) # Centro aproximado
+            c.translate(300, 400) # Approximate center
             c.rotate(rotation)
             c.setFont("Helvetica-Bold", 50)
             c.drawCentredString(0, 0, watermark_text)
@@ -313,7 +313,7 @@ class PDFManager:
             c.saveState()
             c.translate(300, 400)
             c.rotate(rotation)
-            # Dibujar la imagen centrada
+            # Draw image centered
             img = ImageReader(watermark_image)
             iw, ih = img.getSize()
             aspect = ih / float(iw)
@@ -328,7 +328,7 @@ class PDFManager:
         watermark_page = watermark_pdf.pages[0]
 
         for page in reader.pages:
-            # Combinar la marca de agua con la página
+            # Merge watermark with page
             page.merge_page(watermark_page)
             writer.add_page(page)
 
@@ -338,9 +338,9 @@ class PDFManager:
     @staticmethod
     def get_page_count(pdf_path):
         """
-        Obtener el número total de páginas en un PDF.
-        :param pdf_path: Ruta al archivo PDF
-        :return: Recuento de páginas como entero
+        Get the total number of pages in a PDF.
+        :param pdf_path: Path to PDF file
+        :return: Page count as integer
         """
         try:
             reader = PdfReader(pdf_path)
@@ -351,16 +351,16 @@ class PDFManager:
     @staticmethod
     def extract_range(pdf_path, start_page, end_page, output_path):
         """
-        Extraer un rango de páginas a un nuevo PDF.
-        :param pdf_path: Ruta al PDF de origen
-        :param start_page: Número de página inicial (empezando por 1)
-        :param end_page: Número de página final (empezando por 1, inclusive)
-        :param output_path: Ruta para guardar el PDF extraído
+        Extract a range of pages to a new PDF.
+        :param pdf_path: Path to source PDF
+        :param start_page: Start page number (starting with 1)
+        :param end_page: End page number (starting with 1, inclusive)
+        :param output_path: Path to save extracted PDF
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
         
-        # Ajustar para la indexación basada en 0
+        # Adjust for 0-based indexing
         start_idx = max(0, start_page - 1)
         end_idx = min(len(reader.pages), end_page)
         

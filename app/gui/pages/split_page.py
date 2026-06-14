@@ -10,11 +10,11 @@ class SplitPage(BasePage):
     def create_widgets(self):
         self.selected_file = None
         
-        # Encabezado
+        # Header
         header = ctk.CTkLabel(self.content_frame, text="Dividir Archivo PDF", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        # Selección de archivo
+        # File Selection
         select_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         select_frame.pack(pady=10)
         
@@ -24,7 +24,7 @@ class SplitPage(BasePage):
         ctk.CTkButton(select_frame, text="Seleccionar PDF", command=self.select_file,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14)).pack(side="left")
         
-        # Botón de división
+        # Split Button
         ctk.CTkButton(self.content_frame, text="Dividir Todas las Páginas", command=self.split_file, 
                       fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
         

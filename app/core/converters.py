@@ -22,35 +22,35 @@ LOG = logging.getLogger(__name__)
 
 import sys
 
-# Configurar la ruta de Tesseract
+# Configure Tesseract path
 def get_tesseract_cmd():
     if getattr(sys, 'frozen', False):
-        # Buscar tesseract en la carpeta temporal interna (_MEIPASS)
+        # Search for tesseract in internal temporary folder (_MEIPASS)
         bundled_path = os.path.join(sys._MEIPASS, "Tesseract-OCR", "tesseract.exe")
         if os.path.exists(bundled_path):
             return bundled_path
         
-        # O buscar junto al ejecutable
+        # Or search next to the executable
         local_path = os.path.join(os.path.dirname(sys.executable), "Tesseract-OCR", "tesseract.exe")
         if os.path.exists(local_path):
             return local_path
             
-    # En Desarrollo: Comprobar si hay una carpeta Tesseract-OCR local en el proyecto
+    # In Development: Check if there is a local Tesseract-OCR folder in the project
     dev_local_path = os.path.join(os.getcwd(), "Tesseract-OCR", "tesseract.exe")
     if os.path.exists(dev_local_path):
         return dev_local_path
         
-    # En carpeta bin/Tesseract-OCR (Portable)
+    # In bin/Tesseract-OCR folder (Portable)
     bin_sub_path = os.path.join(os.getcwd(), "bin", "Tesseract-OCR", "tesseract.exe")
     if os.path.exists(bin_sub_path):
         return bin_sub_path
         
-    # Directamente en bin (Portable)
+    # Directly in bin (Portable)
     bin_root_path = os.path.join(os.getcwd(), "bin", "tesseract.exe")
     if os.path.exists(bin_root_path):
         return bin_root_path
 
-    # Por defecto: Asumir que está en el PATH del sistema
+    # By default: Assume it is in the system PATH
     return "tesseract"
 
 pytesseract.pytesseract.tesseract_cmd = get_tesseract_cmd()
@@ -59,9 +59,9 @@ class Converter:
     @staticmethod
     def images_to_pdf(image_list, output_path):
         """
-        Convertir una lista de imágenes en un único PDF.
-        :param image_list: Lista de rutas a los archivos de imagen
-        :param output_path: Ruta para guardar el PDF generado
+        Convert a list of images into a single PDF.
+        :param image_list: List of paths to image files
+        :param output_path: Path to save the generated PDF
         """
         with open(output_path, "wb") as f:
             f.write(img2pdf.convert(image_list))
@@ -69,11 +69,11 @@ class Converter:
     @staticmethod
     def pdf_to_images(pdf_path, output_dir, fmt='png', pages=None):
         """
-        Convertir un PDF en una serie de imágenes.
-        :param pdf_path: Ruta al archivo PDF
-        :param output_dir: Directorio para guardar las imágenes
-        :param fmt: Formato de imagen (por defecto: png)
-        :param pages: Lista de índices de página (empezando por 0) para convertir. Si es None, convierte todas.
+        Convert a PDF into a series of images.
+        :param pdf_path: Path to the PDF file
+        :param output_dir: Directory to save the images
+        :param fmt: Image format (default: png)
+        :param pages: List of page indices (starting with 0) to convert. If None, converts all.
         """
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -95,9 +95,9 @@ class Converter:
     @staticmethod
     def pdf_to_word(pdf_path, output_path):
         """
-        Convertir PDF a Word (DOCX).
-        :param pdf_path: Ruta al archivo PDF
-        :param output_path: Ruta para guardar el archivo DOCX
+        Convert PDF to Word (DOCX).
+        :param pdf_path: Path to the PDF file
+        :param output_path: Path to save the DOCX file
         """
         cv = DocxConverter(pdf_path)
         cv.convert(output_path, start=0, end=None)
@@ -106,12 +106,12 @@ class Converter:
     @staticmethod
     def pdf_to_excel(pdf_path, output_path):
         """
-        (Funcion no implementada en la GUI)
-        Funcion en desarrollo, faltan mas pruebas y mejoras en el codigo
-        Convertir PDF a Excel (XLSX).
-        Extrae tablas de las páginas del PDF y las guarda en un archivo Excel.
-        :param pdf_path: Ruta al archivo PDF
-        :param output_path: Ruta para guardar el archivo XLSX
+        (Function not implemented in the GUI)
+        Function in development, more testing and code improvements needed
+        Convert PDF to Excel (XLSX).
+        Extracts tables from PDF pages and saves them to an Excel file.
+        :param pdf_path: Path to the PDF file
+        :param output_path: Path to save the XLSX file
         """
         with pdfplumber.open(pdf_path) as pdf:
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
@@ -122,51 +122,51 @@ class Converter:
                         has_tables = True
                         for j, table in enumerate(tables):
                             df = pd.DataFrame(table)
-                            # Usar la primera fila como encabezado si parece un encabezado
-                            # Por simplicidad, solo volcamos los datos
+                            # Use the first row as header if it looks like a header
+                            # For simplicity, we just dump the data
                             sheet_name = f"Pagina_{i+1}_Tabla_{j+1}"
                             df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
                 
                 if not has_tables:
-                    # Crear una hoja vacía si no se encuentran tablas para evitar errores
+                    # Create an empty sheet if no tables are found to avoid errors
                     pd.DataFrame(["No se encontraron tablas"]).to_excel(writer, sheet_name="Info", index=False, header=False)
 
     @staticmethod
     def pdf_to_powerpoint(pdf_path, output_path):
         """
-        (Funcion no implementada en la GUI)
-        Convertir PDF a PowerPoint (PPTX).
-        Convierte las páginas en imágenes y las coloca en diapositivas.
-        :param pdf_path: Ruta al archivo PDF
-        :param output_path: Ruta para guardar el archivo PPTX
+        (Function not implemented in the GUI)
+        Convert PDF to PowerPoint (PPTX).
+        Converts pages into images and places them on slides.
+        :param pdf_path: Path to the PDF file
+        :param output_path: Path to save the PPTX file
         """
         prs = Presentation()
-        # Usar un directorio temporal para las imágenes
+        # Use a temporary directory for images
         
         with tempfile.TemporaryDirectory() as temp_dir:
             doc = fitz.open(pdf_path)
             
             for i, page in enumerate(doc):
-                # Renderizar página a imagen
+                # Render page to image
                 pix = page.get_pixmap()
                 image_path = os.path.join(temp_dir, f"pagina_{i}.png")
                 pix.save(image_path)
                 
-                # Añadir una diapositiva en blanco
+                # Add a blank slide
                 blank_slide_layout = prs.slide_layouts[6] 
                 slide = prs.slides.add_slide(blank_slide_layout)
                 
-                # Actualizar el tamaño de la diapositiva de la presentación basado en las dimensiones de la primera página
+                # Update presentation slide size based on dimensions of the first page
                 if i == 0:
-                    # page.rect da el tamaño en puntos (1/72 pulgada)
+                    # page.rect gives size in points (1/72 inch)
                     width_pt = page.rect.width
                     height_pt = page.rect.height
                     
-                    # Convertir puntos a EMU (1 punto = 12700 EMU)
+                    # Convert points to EMU (1 point = 12700 EMU)
                     prs.slide_width = int(width_pt * 12700)
                     prs.slide_height = int(height_pt * 12700)
                 
-                # Añadir imagen a la diapositiva
+                # Add image to slide
                 slide.shapes.add_picture(image_path, 0, 0, width=prs.slide_width, height=prs.slide_height)
             
             doc.close()
@@ -175,23 +175,23 @@ class Converter:
     @staticmethod
     def word_to_pdf(doc_path, output_path):
         """
-        Convertir Word a PDF.
-        Requiere Microsoft Word instalado.
-        :param doc_path: Ruta al archivo DOCX/DOC
-        :param output_path: Ruta para guardar el archivo PDF
+        Convert Word to PDF.
+        Requires Microsoft Word installed.
+        :param doc_path: Path to DOCX/DOC file
+        :param output_path: Path to save the PDF file
         """
-        # docx2pdf usa comtypes/win32com internamente
+        # docx2pdf uses comtypes/win32com internally
         docx_convert(doc_path, output_path)
 
     @staticmethod
     def excel_to_pdf(excel_path, output_path):
         """
-        (Funcion no implementada en la GUI)
-        Falta desarrollo en el codigo
-        Convertir Excel a PDF.
-        Requiere Microsoft Excel instalado.
-        :param excel_path: Ruta al archivo XLSX/XLS
-        :param output_path: Ruta para guardar el archivo PDF
+        (Function not implemented in the GUI)
+        Code development missing
+        Convert Excel to PDF.
+        Requires Microsoft Excel installed.
+        :param excel_path: Path to XLSX/XLS file
+        :param output_path: Path to save the PDF file
         """
         excel_path = os.path.abspath(excel_path)
         output_path = os.path.abspath(output_path)
@@ -201,7 +201,7 @@ class Converter:
         
         try:
             wb = excel.Workbooks.Open(excel_path)
-            # 0 es xlTypePDF
+            # 0 is xlTypePDF
             wb.ExportAsFixedFormat(0, output_path)
             wb.Close()
         finally:
@@ -210,23 +210,23 @@ class Converter:
     @staticmethod
     def powerpoint_to_pdf(ppt_path, output_path):
         """
-        (Funcion no implementada en la GUI)
-        Falta desarrollo en el codigo
-        Convertir PowerPoint a PDF.
-        Requiere Microsoft PowerPoint instalado.
-        :param ppt_path: Ruta al archivo PPTX/PPT
-        :param output_path: Ruta para guardar el archivo PDF
+        (Function not implemented in the GUI)
+        Code development missing
+        Convert PowerPoint to PDF.
+        Requires Microsoft PowerPoint installed.
+        :param ppt_path: Path to PPTX/PPT file
+        :param output_path: Path to save the PDF file
         """
         ppt_path = os.path.abspath(ppt_path)
         output_path = os.path.abspath(output_path)
         
         powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-        # PowerPoint podría necesitar ser visible o podría fallar en algunas versiones, pero usualmente es seguro ocultarlo o minimizarlo
+        # PowerPoint might need to be visible or could fail in some versions, but it is usually safe to hide or minimize it
         # powerpoint.Visible = 1 
         
         try:
             deck = powerpoint.Presentations.Open(ppt_path)
-            # 32 es ppSaveAsPDF
+            # 32 is ppSaveAsPDF
             deck.SaveAs(output_path, 32)
             deck.Close()
         finally:
@@ -235,31 +235,31 @@ class Converter:
     @staticmethod
     def apply_ocr(pdf_path, output_path, lang='eng+spa'):
         """
-        Aplicar OCR a un PDF escaneado para hacerlo buscable.
-        :param pdf_path: Ruta al PDF escaneado
-        :param output_path: Ruta para guardar el PDF buscable
-        :param lang: Código de idioma para Tesseract (por defecto: 'eng+spa')
+        Apply OCR to a scanned PDF to make it searchable.
+        :param pdf_path: Path to scanned PDF
+        :param output_path: Path to save searchable PDF
+        :param lang: Language code for Tesseract (default: 'eng+spa')
         """
-        # comprobar si tesseract está instalado/disponible
+        # check if tesseract is installed/available
         
         doc = fitz.open(pdf_path)
         writer = PdfWriter()
         
         for i, page in enumerate(doc):
-            # Obtener imagen de la página
-            # matrix=fitz.Matrix(2, 2) para mejor resolución/precisión
+            # Get page image
+            # matrix=fitz.Matrix(2, 2) for better resolution/precision
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
             img_bytes = pix.tobytes("png")
             img = Image.open(io.BytesIO(img_bytes))
             
-            # Obtener datos PDF de tesseract
-            # esto devuelve un archivo PDF como bytes
+            # Get PDF data from tesseract
+            # this returns a PDF file as bytes
             try:
                 pdf_bytes = pytesseract.image_to_pdf_or_hocr(img, extension='pdf', lang=lang)
             except pytesseract.TesseractNotFoundError:
                 raise Exception("Tesseract no está instalado o no está en su PATH. Por favor instale Tesseract-OCR.")
                 
-            # Crear un lector PDF a partir de estos bytes
+            # Create a PDF reader from these bytes
             ocr_page_reader = PdfReader(io.BytesIO(pdf_bytes))
             writer.add_page(ocr_page_reader.pages[0])
             
@@ -286,10 +286,10 @@ class Converter:
                                margin_mm: int = 12, scale: float = 1.0,
                                wait_for_network_idle: bool = True, timeout: int = 60_000):
         """
-        Convierte HTML -> PDF con Playwright (Chromium headless) de alta fidelidad.
+        Converts HTML -> PDF with high fidelity Playwright (headless Chromium).
         """
         output_path = str(output_path)
-        # Determinar tipo de source si no se especifica
+        # Determine source type if not specified
         if is_url is None:
             is_url = Converter._is_url(source)
 
@@ -312,7 +312,7 @@ class Converter:
             else:
                 raise ValueError("Error en la conversion HTML->PDF. Revisar rutas o archivos.")
 
-        # Comprobación de Playwright
+        # Playwright Check
         try:
             from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
         except ImportError as e:
@@ -331,7 +331,7 @@ class Converter:
                 
                 page.goto(page_url, **nav_opts)
                 
-                # Esperar a los canvas/gráficos
+                # Wait for canvas/graphics
                 try:
                     page.wait_for_function(
                         """
@@ -378,17 +378,17 @@ class Converter:
     @staticmethod
     def pdf_to_text(pdf_path, output_path, preserve_layout=True):
         """
-        Extraer texto de PDF a un archivo TXT.
-        :param pdf_path: Ruta al archivo PDF
-        :param output_path: Ruta para guardar el archivo TXT
-        :param preserve_layout: Si es True, intenta mantener el diseño físico (fitz 'text' o 'blocks'). 
-                                Si es False, solo cadena sin procesar (puede perder saltos de línea).
+        Extract text from PDF to a TXT file.
+        :param pdf_path: Path to the PDF file
+        :param output_path: Path to save the TXT file
+        :param preserve_layout: If True, tries to maintain physical layout (fitz 'text' or 'blocks'). 
+                                If False, only raw string (may lose line breaks).
         """
         doc = fitz.open(pdf_path)
         full_text = []
 
         for page in doc:
-            # "text" preserva líneas y párrafos aproximadamente
+            # "text" preserves lines and paragraphs approximately
             text = page.get_text("text") if preserve_layout else page.get_text("text").replace("\n", " ")
             full_text.append(text)
         
@@ -400,10 +400,10 @@ class Converter:
     @staticmethod
     def html_to_pdf(source, output_path, is_url=False):
         """
-        Convertir HTML (Archivo o URL) a PDF.
-        :param source: Cadena de URL o ruta de archivo
-        :param output_path: Ruta del PDF de salida
-        :param is_url: Booleano
+        Convert HTML (File or URL) to PDF.
+        :param source: URL string or file path
+        :param output_path: Output PDF path
+        :param is_url: Boolean
         """
         pdf_bytes = None
         
@@ -412,11 +412,11 @@ class Converter:
                 response = requests.get(source)
                 response.raise_for_status()
                 html_data = response.content
-                # fitz.open("pdf", data) espera datos pdf.
-                # PyMuPDF v1.24+ soporta "story" pero fitz.open(stream=html) estándar es para abrir, 
-                # luego convert_to_pdf().
+                # fitz.open("pdf", data) expects pdf data.
+                # PyMuPDF v1.24+ supports "story" but standard fitz.open(stream=html) is for opening, 
+                # then convert_to_pdf().
                 
-                # Comprobar si podemos abrir html directamente desde la memoria
+                # Check if we can open html directly from memory
                 doc = fitz.open("html", html_data)
                 pdf_bytes = doc.convert_to_pdf()
                 doc.close()
@@ -438,31 +438,31 @@ class Converter:
     @staticmethod
     def pdf_to_html(pdf_path, output_path, mode="text", progress_callback=None, cancel_check=None):
         """
-        Convertir PDF a HTML.
-        :param pdf_path: PDF de entrada
-        :param output_path: HTML de salida
-        :param mode: "text" (Pres. diseño), "visual" (Imágenes), "ocr" (Tesseract HOCR)
-        :param progress_callback: Función(current_page, total_pages)
-        :param cancel_check: Función() -> bool. Si devuelve True, cancela.
+        Convert PDF to HTML.
+        :param pdf_path: Input PDF
+        :param output_path: Output HTML
+        :param mode: "text" (Pres. layout), "visual" (Images), "ocr" (Tesseract HOCR)
+        :param progress_callback: Function(current_page, total_pages)
+        :param cancel_check: Function() -> bool. If returns True, cancels.
         """
-        # Envoltorio de compatibilidad para llamadas antiguas si las hay
+        # Compatibility wrapper for old calls if any
         if isinstance(mode, bool):
              mode = "ocr" if mode else "text"
 
         if mode == "text":
-            # Modo Simple: Extraer texto/imágenes como HTML
+            # Simple Mode: Extract text/images as HTML
             doc = fitz.open(pdf_path)
             total_pages = len(doc)
             
-            # Generaremos un único HTML con todas las páginas añadidas.
+            # We will generate a single HTML with all pages added.
             html_content = ["<html><body>"]
             for i, page in enumerate(doc):
                 if cancel_check and cancel_check():
                     doc.close()
-                    return # Cancelado
+                    return # Cancelled
                 
                 html_content.append(page.get_text("html"))
-                html_content.append("<hr>") # Separador de salto de página
+                html_content.append("<hr>") # Page break separator
                 
                 if progress_callback:
                     progress_callback(i + 1, total_pages)
@@ -474,7 +474,7 @@ class Converter:
                 f.write("\n".join(html_content))
                 
         elif mode == "visual":
-            # Modo Visual: Renderizar páginas como imágenes (Base64) para preservar el aspecto perfecto
+            # Visual Mode: Render pages as images (Base64) to preserve perfect look
             doc = fitz.open(pdf_path)
             total_pages = len(doc)
             html_content = ["<html><head><style>body { background: #525659; margin: 0; padding: 20px; text-align: center; } img { box-shadow: 0 0 10px rgba(0,0,0,0.5); margin-bottom: 20px; max-width: 100%; }</style></head><body>"]
@@ -486,7 +486,7 @@ class Converter:
                     doc.close()
                     return
                 
-                # Renderizar alta calidad (zoom 2x)
+                # Render high quality (zoom 2x)
                 pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
                 img_data = pix.tobytes("png")
                 b64_img = base64.b64encode(img_data).decode('utf-8')
@@ -503,7 +503,7 @@ class Converter:
                 f.write("\n".join(html_content))
 
         elif mode == "ocr":
-            # Modo Complejo
+            # Complex Mode
             doc = fitz.open(pdf_path)
             total_pages = len(doc)
             full_hocr = ["<html><body>"]
