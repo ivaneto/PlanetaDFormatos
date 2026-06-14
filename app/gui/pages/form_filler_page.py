@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 import fitz
 from PIL import Image
 import os
@@ -20,11 +21,11 @@ class FormFillerPage(BasePage):
                                       fg_color=Theme.PRIMARY)
         self.btn_load.pack(side="left", padx=10, pady=10)
         
-        self.lbl_file = ctk.CTkLabel(self.toolbar_frame, text="Ningún archivo seleccionado", text_color="gray")
+        self.lbl_file = ctk.CTkLabel(self.toolbar_frame, text="Ningún archivo seleccionado", text_color=Theme.TEXT_MUTED)
         self.lbl_file.pack(side="left", padx=10)
         
         self.btn_save = ctk.CTkButton(self.toolbar_frame, text="Guardar PDF", command=self.save_pdf, 
-                                      fg_color="#2CC985", hover_color="#0C955A", state="disabled")
+                                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, state="disabled")
         self.btn_save.pack(side="right", padx=10, pady=10)
         
         # Área principal con desplazamiento
@@ -113,15 +114,17 @@ class FormFillerPage(BasePage):
         
         width = sx1 - sx0
         height = sy1 - sy0
-        
-        # Verificación de widget válido
-        if width < 10 or height < 10:
-             print(f"Widget {param} es muy pequeño: {width}x{height}")
 
         ftype = field['type']
         val = field['value']
         param = field['param']
-        
+
+        # Verificación de widget válido: si es demasiado pequeño, igualmente
+        # se renderiza con un tamaño mínimo para que sea utilizable.
+        if width < 10 or height < 10:
+            width = max(width, 10)
+            height = max(height, 10)
+
         # Decidir widget
         widget = None
         
@@ -170,7 +173,6 @@ class FormFillerPage(BasePage):
             
         if widget:
             widget.place(x=sx0, y=sy0)
-            print(f"Placed {ftype} '{param}' at {sx0},{sy0} size {width}x{height}")
 
     def save_pdf(self):
         if not self.pdf_path:

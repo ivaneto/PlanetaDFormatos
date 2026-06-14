@@ -1,5 +1,6 @@
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
+﻿import customtkinter as ctk
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.converters import Converter
 import os
@@ -15,14 +16,14 @@ class OCRPage(BasePage):
         header = ctk.CTkLabel(self.content_frame, text="OCR (Reconocimiento Óptico de Caracteres)", font=(Theme.FONT_FAMILY, 24, "bold"), text_color=Theme.TEXT_MAIN)
         header.pack(pady=20)
         
-        description = ctk.CTkLabel(self.content_frame, text="Convierte PDFs escaneados en archivos PDF con texto buscable.", font=(Theme.FONT_FAMILY, 14), text_color="gray")
+        description = ctk.CTkLabel(self.content_frame, text="Convierte PDFs escaneados en archivos PDF con texto buscable.", font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED)
         description.pack(pady=(0, 20))
         
         # File Selection
         select_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         select_frame.pack(pady=10)
         
-        self.file_label = ctk.CTkLabel(select_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color="gray")
+        self.file_label = ctk.CTkLabel(select_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED)
         self.file_label.pack(side="left", padx=10)
         
         ctk.CTkButton(select_frame, text="Seleccionar PDF Escaneado", command=self.select_file,
@@ -39,7 +40,7 @@ class OCRPage(BasePage):
         
         # Conversion Button
         self.btn_convert = ctk.CTkButton(self.content_frame, text="Iniciar OCR", command=self.start_conversion, 
-                      fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold"))
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 16, "bold"))
         self.btn_convert.pack(pady=20)
         
         # Status Label

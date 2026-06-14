@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_editor import PDFEditorBackend
 from app.gui.theme import Theme
@@ -103,9 +104,7 @@ class RedactPage(BasePage):
         self.lbl_page.pack(side="left", padx=2)
         self.btn_next = ctk.CTkButton(self.toolbar, text=">", width=30, height=30, command=self.next_page)
         self.btn_next.pack(side="left", padx=2)
-        
-        self.btn_next.pack(side="left", padx=2)
-        
+
         # Ir a página
         self.entry_page = ctk.CTkEntry(self.toolbar, width=40, height=30, placeholder_text="#")
         self.entry_page.pack(side="left", padx=5)
@@ -161,6 +160,12 @@ class RedactPage(BasePage):
     def load_pdf(self, path):
         self.current_pdf_path = path
         try:
+            # Cerrar el documento previo para liberar memoria y el bloqueo del archivo.
+            if self.doc:
+                try:
+                    self.doc.close()
+                except Exception:
+                    pass
             self.doc = fitz.open(path)
             self.current_page_idx = 0
             self.page_draw_data = {} 
@@ -352,11 +357,10 @@ class RedactPage(BasePage):
 
     def check_text_under_cursor(self, x, y):
         hit_existing = False
+        scale = self.zoom_level
+        px, py = x / scale, y / scale
+
         if self.current_page_idx in self.page_draw_data:
-            scale = self.zoom_level
-            px, py = x / scale, y / scale
-            
-            hit_existing = False
             for uid, data in self.page_draw_data[self.current_page_idx].items():
                 if data['type'] == 'redact_rect':
                     r = data['rect']
@@ -365,17 +369,11 @@ class RedactPage(BasePage):
                             self.selected_item_ids.add(uid)
                             self.draw_selection_box()
                         hit_existing = True
-            
-        if not self.doc: return
+
+        if not self.doc:
+            return
         page = self.doc[self.current_page_idx]
-        scale = self.zoom_level
-        px, py = x / scale, y / scale
-            
-        if not self.doc: return
-        page = self.doc[self.current_page_idx]
-        scale = self.zoom_level
-        px, py = x / scale, y / scale
-        
+
         words = page.get_text("words")
         for w in words:
             r = fitz.Rect(w[:4])

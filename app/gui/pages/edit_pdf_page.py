@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_editor import PDFEditorBackend
 from app.gui.theme import Theme
@@ -155,6 +156,12 @@ class EditPdfPage(BasePage):
     def load_pdf(self, path):
         self.current_pdf_path = path
         try:
+            # Cerrar el documento previo para liberar memoria y el bloqueo del archivo.
+            if self.doc:
+                try:
+                    self.doc.close()
+                except Exception:
+                    pass
             self.doc = fitz.open(path)
             self.current_page_idx = 0
             self.page_draw_data = {} 

@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_ops import PDFManager
 
@@ -24,7 +25,7 @@ class WatermarkPage(BasePage):
         content_frame.pack(fill="both", expand=True, padx=20)
 
         # Input PDF Selection
-        input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        input_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         input_frame.pack(fill="x", pady=5)
         ctk.CTkLabel(input_frame, text="PDF de Entrada:", font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MAIN).pack(side="left", padx=10)
         
@@ -33,7 +34,7 @@ class WatermarkPage(BasePage):
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=10, pady=10)
 
         # Watermark Settings
-        settings_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        settings_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         settings_frame.pack(fill="x", pady=10)
         ctk.CTkLabel(settings_frame, text="Configuración de la Marca de Agua", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=10)
 
@@ -68,13 +69,62 @@ class WatermarkPage(BasePage):
         ctk.CTkLabel(options_frame, text="Rotación:", text_color=Theme.TEXT_MAIN).pack(side="left", padx=(10, 0))
         ctk.CTkEntry(options_frame, textvariable=self.rotation, width=60).pack(side="left", padx=5)
 
-        # Apply Button
-        ctk.CTkButton(self.content_frame, text="Aplicar Marca de Agua", command=self.apply_watermark, 
-                      fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
-        
+        self.tile = tk.BooleanVar(value=False)
+        ctk.CTkCheckBox(options_frame, text="Repetir (mosaico)", variable=self.tile,
+                        fg_color=Theme.PRIMARY, text_color=Theme.TEXT_MAIN).pack(side="left", padx=15)
+
+        # Action Buttons (Preview + Apply)
+        btn_row = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        btn_row.pack(pady=20)
+        ctk.CTkButton(btn_row, text="👁 Vista previa", command=self.preview_watermark,
+                      fg_color="transparent", border_width=1, border_color=Theme.PRIMARY,
+                      text_color=Theme.PRIMARY, hover_color=Theme.ACCENT_SOFT,
+                      font=(Theme.FONT_FAMILY, 14)).pack(side="left", padx=8)
+        ctk.CTkButton(btn_row, text="Aplicar Marca de Agua", command=self.apply_watermark,
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 16, "bold")).pack(side="left", padx=8)
+
         self.enable_dnd()
 
         self.toggle_inputs()
+
+    def _collect_params(self):
+        """Valida los datos y devuelve los kwargs de la marca de agua, o None."""
+        if not self.input_pdf.get():
+            messagebox.showwarning("Advertencia", "¡Por favor, seleccione un PDF de entrada!")
+            return None
+
+        text = self.watermark_text.get() if self.watermark_type.get() == "text" else None
+        image = self.watermark_image.get() if self.watermark_type.get() == "image" else None
+
+        if self.watermark_type.get() == "text" and not text:
+            messagebox.showwarning("Advertencia", "¡Por favor, ingrese el texto de la marca de agua!")
+            return None
+        if self.watermark_type.get() == "image" and not image:
+            messagebox.showwarning("Advertencia", "¡Por favor, seleccione una imagen para la marca de agua!")
+            return None
+
+        try:
+            rotation = int(self.rotation.get())
+        except ValueError:
+            messagebox.showwarning("Advertencia", "La rotación debe ser un número.")
+            return None
+
+        return dict(watermark_text=text, watermark_image=image,
+                    opacity=self.opacity.get(), rotation=rotation, tile=self.tile.get())
+
+    def preview_watermark(self):
+        params = self._collect_params()
+        if params is None:
+            return
+        import tempfile, os
+        tmp = os.path.join(tempfile.gettempdir(), "preview_watermark.pdf")
+        try:
+            PDFManager.add_watermark(self.input_pdf.get(), tmp, **params)
+            from app.gui.pages.visualization_page import VisualizationPage
+            self.controller.show_page(VisualizationPage)
+            self.controller.current_page.load_pdf(tmp)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo generar la vista previa: {e}")
 
     def handle_dropped_files(self, files):
         handled = False
@@ -114,30 +164,17 @@ class WatermarkPage(BasePage):
             messagebox.showwarning("Advertencia", "¡Por favor, seleccione un PDF de entrada!")
             return
 
+        params = self._collect_params()
+        if params is None:
+            return
+
         output_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("Archivos PDF", "*.pdf")])
         if not output_path:
             return
 
         try:
-            text = self.watermark_text.get() if self.watermark_type.get() == "text" else None
-            image = self.watermark_image.get() if self.watermark_type.get() == "image" else None
+            PDFManager.add_watermark(self.input_pdf.get(), output_path, **params)
 
-            if self.watermark_type.get() == "text" and not text:
-                messagebox.showwarning("Advertencia", "¡Por favor, ingrese el texto de la marca de agua!")
-                return
-            if self.watermark_type.get() == "image" and not image:
-                messagebox.showwarning("Advertencia", "¡Por favor, seleccione una imagen para la marca de agua!")
-                return
-
-            PDFManager.add_watermark(
-                self.input_pdf.get(),
-                output_path,
-                watermark_text=text,
-                watermark_image=image,
-                opacity=self.opacity.get(),
-                rotation=int(self.rotation.get())
-            )
-            
             if messagebox.askyesno("Éxito", "Marca de agua aplicada. ¿Desea visualizar el PDF?"):
                 from app.gui.pages.visualization_page import VisualizationPage
                 self.controller.show_page(VisualizationPage)

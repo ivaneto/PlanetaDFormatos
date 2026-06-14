@@ -1,5 +1,8 @@
 import fitz  # PyMuPDF
 import traceback
+from app.core.logger import get_logger
+
+LOG = get_logger(__name__)
 
 class FormHandler:
     @staticmethod
@@ -77,8 +80,8 @@ class FormHandler:
 
             doc.close()
         except Exception as e:
-            print(f"Error al extraer los campos: {e}")
-            
+            LOG.error(f"Error al extraer los campos: {e}")
+
         return fields
 
     @staticmethod

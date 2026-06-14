@@ -1,4 +1,4 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 from app.gui.theme import Theme
 
 class PageThumbnailWidget(ctk.CTkFrame):
@@ -23,7 +23,7 @@ class PageThumbnailWidget(ctk.CTkFrame):
         self.image_label.pack(padx=2, pady=2)
         
         # Page Number Label
-        self.num_label = ctk.CTkLabel(self, text=f"Página {page_num + 1}", font=(Theme.FONT_FAMILY, 10), text_color="gray")
+        self.num_label = ctk.CTkLabel(self, text=f"Página {page_num + 1}", font=(Theme.FONT_FAMILY, 10), text_color=Theme.TEXT_MUTED)
         if show_page_num:
             self.num_label.pack(pady=(0, 2))
         

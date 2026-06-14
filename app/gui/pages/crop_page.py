@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox, Canvas
+from tkinter import filedialog, Canvas
+from app.gui.components import dialogs as messagebox
 import fitz  # PyMuPDF
 from PIL import Image, ImageTk
 from app.gui.pages.base_page import BasePage

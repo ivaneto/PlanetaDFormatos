@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_editor import PDFEditorBackend
 from app.gui.theme import Theme
@@ -28,18 +29,18 @@ class UnlockPage(BasePage):
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # Input PDF Selection
-        input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        input_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         input_frame.pack(fill="x", pady=20, padx=20)
         
         ctk.CTkLabel(input_frame, text="PDF Protegido:", font=(Theme.FONT_FAMILY, 14, "bold"), text_color=Theme.TEXT_MAIN).pack(side="left", padx=20, pady=20)
         
-        self.file_label = ctk.CTkLabel(input_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color="gray")
+        self.file_label = ctk.CTkLabel(input_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED)
         self.file_label.pack(side="left", padx=10, fill="x", expand=True)
         ctk.CTkButton(input_frame, text="Explorar...", command=self.browse_pdf, width=120, height=40,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold")).pack(side="left", padx=20, pady=20)
 
         # Password Entry
-        pw_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        pw_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         pw_frame.pack(fill="x", pady=10, padx=20)
         
         ctk.CTkLabel(pw_frame, text="Contraseña:", font=(Theme.FONT_FAMILY, 14, "bold"), text_color=Theme.TEXT_MAIN).pack(side="left", padx=20, pady=20)
@@ -47,7 +48,7 @@ class UnlockPage(BasePage):
         
         # Action Button
         ctk.CTkButton(self.content_frame, text="Desbloquear PDF", command=self.unlock_pdf, 
-                      fg_color=Theme.SUCCESS, hover_color="#0C955A", font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=40)
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=40)
         
         self.enable_dnd()
 
@@ -84,7 +85,7 @@ class UnlockPage(BasePage):
            success = self.backend.unlock_pdf(input_path, output_path, password)
            if success:
                messagebox.showinfo("Éxito", "El PDF ha sido desbloqueado exitosamente.")
-               self.file_label.configure(text="Ningún archivo seleccionado", text_color="gray")
+               self.file_label.configure(text="Ningún archivo seleccionado", text_color=Theme.TEXT_MUTED)
                self.full_input_path = ""
                self.password.set("")
            else:

@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_ops import PDFManager
 
@@ -18,7 +19,7 @@ class SplitPage(BasePage):
         select_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         select_frame.pack(pady=10)
         
-        self.file_label = ctk.CTkLabel(select_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color="gray")
+        self.file_label = ctk.CTkLabel(select_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED)
         self.file_label.pack(side="left", padx=10)
         
         ctk.CTkButton(select_frame, text="Seleccionar PDF", command=self.select_file,
@@ -26,7 +27,7 @@ class SplitPage(BasePage):
         
         # Split Button
         ctk.CTkButton(self.content_frame, text="Dividir Todas las Páginas", command=self.split_file, 
-                      fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 16, "bold")).pack(pady=20)
         
         self.enable_dnd()
 

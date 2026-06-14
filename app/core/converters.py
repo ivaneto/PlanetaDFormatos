@@ -1,26 +1,34 @@
-import img2pdf
-import fitz  # PyMuPDF
+﻿import fitz  # PyMuPDF
 from PIL import Image
 import os
-from pdf2docx import Converter as DocxConverter
-import pdfplumber
-import pandas as pd
-from pptx import Presentation
-from pptx.util import Inches
-import comtypes.client
-from docx2pdf import convert as docx_convert
-import pytesseract
 import io
-import requests
 from pypdf import PdfWriter, PdfReader
 import tempfile
 from urllib.parse import urlparse
 from pathlib import Path
-import logging
+from app.core.logger import get_logger
 
-LOG = logging.getLogger(__name__)
+LOG = get_logger(__name__)
 
 import sys
+
+# NOTA: las dependencias pesadas (pandas, pdf2docx, python-pptx, comtypes,
+# docx2pdf, pytesseract, requests, img2pdf) se importan de forma diferida
+# DENTRO de las funciones que las usan, para acelerar el arranque de la app
+# (que importa este módulo al cargar varias páginas).
+
+_TESSERACT_CONFIGURED = False
+
+
+def _ensure_tesseract():
+    """Configura la ruta de Tesseract la primera vez que se necesita OCR."""
+    global _TESSERACT_CONFIGURED
+    import pytesseract
+    if not _TESSERACT_CONFIGURED:
+        pytesseract.pytesseract.tesseract_cmd = get_tesseract_cmd()
+        _TESSERACT_CONFIGURED = True
+    return pytesseract
+
 
 # Configure Tesseract path
 def get_tesseract_cmd():
@@ -53,8 +61,6 @@ def get_tesseract_cmd():
     # By default: Assume it is in the system PATH
     return "tesseract"
 
-pytesseract.pytesseract.tesseract_cmd = get_tesseract_cmd()
-
 class Converter:
     @staticmethod
     def images_to_pdf(image_list, output_path):
@@ -63,6 +69,7 @@ class Converter:
         :param image_list: List of paths to image files
         :param output_path: Path to save the generated PDF
         """
+        import img2pdf
         with open(output_path, "wb") as f:
             f.write(img2pdf.convert(image_list))
 
@@ -99,6 +106,7 @@ class Converter:
         :param pdf_path: Path to the PDF file
         :param output_path: Path to save the DOCX file
         """
+        from pdf2docx import Converter as DocxConverter
         cv = DocxConverter(pdf_path)
         cv.convert(output_path, start=0, end=None)
         cv.close()
@@ -106,30 +114,44 @@ class Converter:
     @staticmethod
     def pdf_to_excel(pdf_path, output_path):
         """
-        (Function not implemented in the GUI)
-        Function in development, more testing and code improvements needed
-        Convert PDF to Excel (XLSX).
-        Extracts tables from PDF pages and saves them to an Excel file.
+        Convert PDF to Excel (XLSX). Extracts tables from each page and writes
+        them to separate sheets. Uses the first row as header when it looks
+        like one (all cells non-empty and the row below has data).
         :param pdf_path: Path to the PDF file
         :param output_path: Path to save the XLSX file
         """
+        import pdfplumber
+        import pandas as pd
+
+        def _looks_like_header(rows):
+            if len(rows) < 2:
+                return False
+            head = rows[0]
+            # Cabecera plausible: todas las celdas con texto y sin valores vacíos.
+            return all(c is not None and str(c).strip() != "" for c in head)
+
         with pdfplumber.open(pdf_path) as pdf:
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                 has_tables = False
                 for i, page in enumerate(pdf.pages):
                     tables = page.extract_tables()
-                    if tables:
-                        has_tables = True
-                        for j, table in enumerate(tables):
+                    if not tables:
+                        continue
+                    has_tables = True
+                    for j, table in enumerate(tables):
+                        if _looks_like_header(table):
+                            df = pd.DataFrame(table[1:], columns=table[0])
+                            use_header = True
+                        else:
                             df = pd.DataFrame(table)
-                            # Use the first row as header if it looks like a header
-                            # For simplicity, we just dump the data
-                            sheet_name = f"Pagina_{i+1}_Tabla_{j+1}"
-                            df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
-                
+                            use_header = False
+                        # Nombre de hoja válido (máx 31 chars, sin caracteres prohibidos).
+                        sheet_name = f"Pag{i+1}_Tabla{j+1}"[:31]
+                        df.to_excel(writer, sheet_name=sheet_name, index=False, header=use_header)
+
                 if not has_tables:
-                    # Create an empty sheet if no tables are found to avoid errors
-                    pd.DataFrame(["No se encontraron tablas"]).to_excel(writer, sheet_name="Info", index=False, header=False)
+                    pd.DataFrame(["No se encontraron tablas"]).to_excel(
+                        writer, sheet_name="Info", index=False, header=False)
 
     @staticmethod
     def pdf_to_powerpoint(pdf_path, output_path):
@@ -140,6 +162,7 @@ class Converter:
         :param pdf_path: Path to the PDF file
         :param output_path: Path to save the PPTX file
         """
+        from pptx import Presentation
         prs = Presentation()
         # Use a temporary directory for images
         
@@ -173,64 +196,130 @@ class Converter:
         prs.save(output_path)
 
     @staticmethod
+    def _find_soffice():
+        """Localiza el ejecutable de LibreOffice (soffice) si está instalado."""
+        import shutil
+        for name in ("soffice", "soffice.exe"):
+            found = shutil.which(name)
+            if found:
+                return found
+        candidates = [
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+            "/usr/bin/soffice",
+            "/usr/bin/libreoffice",
+            "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                return path
+        return None
+
+    @staticmethod
+    def _libreoffice_to_pdf(input_path, output_path):
+        """Convierte cualquier documento de Office a PDF usando LibreOffice
+        en modo headless. Alternativa multiplataforma cuando MS Office no está
+        disponible.
+        """
+        import subprocess
+        soffice = Converter._find_soffice()
+        if not soffice:
+            raise RuntimeError(
+                "No se encontró Microsoft Office ni LibreOffice instalados.\n"
+                "Instala alguno de ellos para convertir documentos de Office a PDF."
+            )
+
+        out_dir = tempfile.mkdtemp(prefix="pf_office_")
+        try:
+            subprocess.run(
+                [soffice, "--headless", "--convert-to", "pdf", "--outdir", out_dir, os.path.abspath(input_path)],
+                check=True, timeout=180,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            produced = os.path.join(
+                out_dir, os.path.splitext(os.path.basename(input_path))[0] + ".pdf"
+            )
+            if not os.path.exists(produced):
+                raise RuntimeError("LibreOffice no generó el PDF esperado.")
+            os.replace(produced, output_path)
+        finally:
+            import shutil
+            shutil.rmtree(out_dir, ignore_errors=True)
+
+    @staticmethod
     def word_to_pdf(doc_path, output_path):
         """
-        Convert Word to PDF.
-        Requires Microsoft Word installed.
+        Convert Word to PDF. Tries MS Word (docx2pdf) first and falls back to
+        LibreOffice if Word is not installed.
         :param doc_path: Path to DOCX/DOC file
         :param output_path: Path to save the PDF file
         """
-        # docx2pdf uses comtypes/win32com internally
-        docx_convert(doc_path, output_path)
+        try:
+            from docx2pdf import convert as docx_convert
+            docx_convert(doc_path, output_path)
+            if os.path.exists(output_path):
+                return
+            raise RuntimeError("docx2pdf no produjo ningún archivo.")
+        except Exception as e:
+            LOG.warning(f"Word->PDF con MS Office falló ({e}); intentando LibreOffice...")
+            Converter._libreoffice_to_pdf(doc_path, output_path)
 
     @staticmethod
     def excel_to_pdf(excel_path, output_path):
         """
-        (Function not implemented in the GUI)
-        Code development missing
-        Convert Excel to PDF.
-        Requires Microsoft Excel installed.
+        Convert Excel to PDF. Tries MS Excel (COM) first and falls back to
+        LibreOffice if Excel is not installed.
         :param excel_path: Path to XLSX/XLS file
         :param output_path: Path to save the PDF file
         """
+        import comtypes.client
         excel_path = os.path.abspath(excel_path)
         output_path = os.path.abspath(output_path)
-        
-        excel = comtypes.client.CreateObject("Excel.Application")
-        excel.Visible = False
-        
+
         try:
-            wb = excel.Workbooks.Open(excel_path)
-            # 0 is xlTypePDF
-            wb.ExportAsFixedFormat(0, output_path)
-            wb.Close()
-        finally:
-            excel.Quit()
+            excel = comtypes.client.CreateObject("Excel.Application")
+            excel.Visible = False
+            try:
+                wb = excel.Workbooks.Open(excel_path)
+                # 0 is xlTypePDF
+                wb.ExportAsFixedFormat(0, output_path)
+                wb.Close()
+            finally:
+                excel.Quit()
+            if os.path.exists(output_path):
+                return
+            raise RuntimeError("Excel no produjo ningún archivo.")
+        except Exception as e:
+            LOG.warning(f"Excel->PDF con MS Office falló ({e}); intentando LibreOffice...")
+            Converter._libreoffice_to_pdf(excel_path, output_path)
 
     @staticmethod
     def powerpoint_to_pdf(ppt_path, output_path):
         """
-        (Function not implemented in the GUI)
-        Code development missing
-        Convert PowerPoint to PDF.
-        Requires Microsoft PowerPoint installed.
+        Convert PowerPoint to PDF. Tries MS PowerPoint (COM) first and falls
+        back to LibreOffice if PowerPoint is not installed.
         :param ppt_path: Path to PPTX/PPT file
         :param output_path: Path to save the PDF file
         """
+        import comtypes.client
         ppt_path = os.path.abspath(ppt_path)
         output_path = os.path.abspath(output_path)
-        
-        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-        # PowerPoint might need to be visible or could fail in some versions, but it is usually safe to hide or minimize it
-        # powerpoint.Visible = 1 
-        
+
         try:
-            deck = powerpoint.Presentations.Open(ppt_path)
-            # 32 is ppSaveAsPDF
-            deck.SaveAs(output_path, 32)
-            deck.Close()
-        finally:
-            powerpoint.Quit()
+            powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+            try:
+                deck = powerpoint.Presentations.Open(ppt_path)
+                # 32 is ppSaveAsPDF
+                deck.SaveAs(output_path, 32)
+                deck.Close()
+            finally:
+                powerpoint.Quit()
+            if os.path.exists(output_path):
+                return
+            raise RuntimeError("PowerPoint no produjo ningún archivo.")
+        except Exception as e:
+            LOG.warning(f"PPT->PDF con MS Office falló ({e}); intentando LibreOffice...")
+            Converter._libreoffice_to_pdf(ppt_path, output_path)
 
     @staticmethod
     def apply_ocr(pdf_path, output_path, lang='eng+spa'):
@@ -241,10 +330,11 @@ class Converter:
         :param lang: Language code for Tesseract (default: 'eng+spa')
         """
         # check if tesseract is installed/available
-        
+        pytesseract = _ensure_tesseract()
+
         doc = fitz.open(pdf_path)
         writer = PdfWriter()
-        
+
         for i, page in enumerate(doc):
             # Get page image
             # matrix=fitz.Matrix(2, 2) for better resolution/precision
@@ -345,7 +435,7 @@ class Converter:
                         """,
                         timeout=5000
                     )
-                except:
+                except Exception:
                     pass
                 
                 page.wait_for_timeout(500)
@@ -372,7 +462,7 @@ class Converter:
             if temp_file and os.path.exists(temp_file.name):
                 try:
                     os.unlink(temp_file.name)
-                except:
+                except Exception:
                     pass
 
     @staticmethod
@@ -409,6 +499,7 @@ class Converter:
         
         if is_url:
             try:
+                import requests
                 response = requests.get(source)
                 response.raise_for_status()
                 html_data = response.content
@@ -504,6 +595,7 @@ class Converter:
 
         elif mode == "ocr":
             # Complex Mode
+            pytesseract = _ensure_tesseract()
             doc = fitz.open(pdf_path)
             total_pages = len(doc)
             full_hocr = ["<html><body>"]
@@ -520,7 +612,7 @@ class Converter:
                 try:
                     hocr = pytesseract.image_to_pdf_or_hocr(pil_img, extension='hocr', lang='eng+spa')
                     full_hocr.append(hocr.decode('utf-8'))
-                except:
+                except Exception:
                     full_hocr.append(f"<p>Error de OCR en la página {i+1}</p>")
                     
                 full_hocr.append("<hr>")

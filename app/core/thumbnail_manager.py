@@ -30,6 +30,31 @@ class ThumbnailManager:
             return None
 
     @staticmethod
+    def iter_thumbnails(pdf_path, size=(100, 140)):
+        """
+        Generate thumbnails for every page opening the document ONCE.
+        Yields tuples (page_index, PIL.Image). Much faster than calling
+        get_page_thumbnail() per page (which reopens the file each time).
+        """
+        try:
+            doc = fitz.open(pdf_path)
+        except Exception as e:
+            print(f"No se pudo abrir {pdf_path}: {e}")
+            return
+        try:
+            for i, page in enumerate(doc):
+                try:
+                    zoom = size[0] / page.rect.width
+                    mat = fitz.Matrix(zoom, zoom)
+                    pix = page.get_pixmap(matrix=mat)
+                    img = Image.open(io.BytesIO(pix.tobytes("png")))
+                    yield i, img
+                except Exception as e:
+                    print(f"Error al generar la miniatura de la página {i}: {e}")
+        finally:
+            doc.close()
+
+    @staticmethod
     def get_pdf_page_count(pdf_path):
         try:
             doc = fitz.open(pdf_path)

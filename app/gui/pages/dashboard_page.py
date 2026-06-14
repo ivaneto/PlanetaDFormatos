@@ -27,6 +27,9 @@ from app.gui.pages.sign_page import SignPdfPage
 from app.gui.pages.unlock_page import UnlockPage
 from app.gui.pages.visualization_page import VisualizationPage
 from app.gui.pages.conversion_tools_page import ConversionToolsPage
+from app.gui.pages.excel2pdf_page import Excel2PdfPage
+from app.gui.pages.pdf2excel_page import Pdf2ExcelPage
+from app.gui.pages.pdf2ppt_page import Pdf2PptPage
 
 class DashboardPage(BasePage):
     def __init__(self, parent, controller):
@@ -76,7 +79,10 @@ class DashboardPage(BasePage):
             #Conversiones
             {"title": "PDF a Word", "desc": "Convierte PDF a DOCX.", "icon": "📝", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Pdf2WordPage},
             {"title": "Word a PDF", "desc": "Convierte documentos Word a PDF.", "icon": "📄", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Word2PdfPage},
+            #{"title": "PDF a Excel", "desc": "Extrae tablas del PDF a XLSX.", "icon": "📊", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Pdf2ExcelPage},
+            #{"title": "Excel a PDF", "desc": "Convierte hojas de cálculo a PDF.", "icon": "📗", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Excel2PdfPage},
             {"title": "PPT a PDF", "desc": "Convierte PowerPoint a PDF.", "icon": "📽️", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Ppt2PdfPage},
+            #{"title": "PDF a PPT", "desc": "Convierte páginas PDF en diapositivas.", "icon": "📕", "color": Theme.CARD_BG_N8, "text_color": Theme.TEXT_MAIN, "page": Pdf2PptPage},
             ]
         
         # Crear Tarjetas
@@ -94,12 +100,18 @@ class DashboardPage(BasePage):
         bg_color = tool.get("color", Theme.BACKGROUND)
         text_color = tool.get("text_color", "white" if bg_color == Theme.PRIMARY else Theme.TEXT_MAIN)
         
-        card_frame = ctk.CTkFrame(self.cards_frame, fg_color=bg_color, corner_radius=20, height=180)
-        if tool.get("border"):
-            card_frame.configure(border_width=2, border_color="#E0E0E0")
-            
+        card_frame = ctk.CTkFrame(self.cards_frame, fg_color=bg_color, corner_radius=16, height=180,
+                                  border_width=1, border_color=Theme.BORDER, cursor="hand2")
         card_frame.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
         card_frame.bind("<Button-1>", lambda e, p=tool["page"]: self.handle_click(p))
+
+        # Efecto hover (resaltado) sobre la tarjeta y sus hijos
+        def _enter(_e, cf=card_frame):
+            cf.configure(border_color=Theme.PRIMARY, border_width=2)
+        def _leave(_e, cf=card_frame):
+            cf.configure(border_color=Theme.BORDER, border_width=1)
+        card_frame.bind("<Enter>", _enter)
+        card_frame.bind("<Leave>", _leave)
         
         icon_label = ctk.CTkLabel(card_frame, text=tool["icon"], font=("Arial", 30), text_color=Theme.PRIMARY if bg_color != Theme.PRIMARY else "white")
         icon_label.pack(anchor="w", padx=20, pady=(20, 10))
@@ -117,5 +129,5 @@ class DashboardPage(BasePage):
         if page_class:
             self.controller.show_page(page_class)
         else:
-            from tkinter import messagebox
+            from app.gui.components import dialogs as messagebox
             messagebox.showinfo("Próximamente", "Esta función aún no ha sido implementada.")

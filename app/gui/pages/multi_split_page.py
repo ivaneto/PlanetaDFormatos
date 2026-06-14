@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 import os
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_ops import PDFManager
@@ -21,7 +22,7 @@ class MultiSplitPage(BasePage):
         top_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         top_frame.pack(fill="x", padx=20, pady=10)
         
-        self.file_label = ctk.CTkLabel(top_frame, text="Ningún archivo seleccionado", font=(Theme.FONT_FAMILY, 14), text_color="gray", anchor="w")
+        self.file_label = ctk.CTkLabel(top_frame, text="Ningún archivo seleccionado", font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED, anchor="w")
         self.file_label.pack(side="left", fill="x", expand=True, padx=(0, 10))
         
         ctk.CTkButton(top_frame, text="Seleccionar PDF", command=self.select_file,

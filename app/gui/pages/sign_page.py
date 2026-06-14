@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox, Canvas
+from tkinter import filedialog, Canvas
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.gui.components.file_list_frame import FileListFrame
 from app.gui.theme import Theme
@@ -82,6 +83,12 @@ class PDFViewerFrame(ctk.CTkFrame):
     def load_pdf(self, path):
         self.pdf_path = path
         try:
+            # Cerrar el documento previo para liberar memoria y el bloqueo del archivo.
+            if self.doc:
+                try:
+                    self.doc.close()
+                except Exception:
+                    pass
             self.doc = fitz.open(path)
             self.current_page_idx = 0
             self.zoom_level = 1.0 
@@ -365,7 +372,7 @@ class SignPdfPage(BasePage):
         self.content_frame.grid_rowconfigure(0, weight=1)
         
         # --- Marco de Controles ---
-        self.controls_frame = ctk.CTkFrame(self.content_frame, width=350, corner_radius=15, fg_color="white")
+        self.controls_frame = ctk.CTkFrame(self.content_frame, width=350, corner_radius=15, fg_color=Theme.SURFACE)
         self.controls_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         self.controls_frame.grid_propagate(False)
         
@@ -436,9 +443,9 @@ class SignPdfPage(BasePage):
             self.update_signature_on_viewer()
 
     def setup_visual_tab(self):
-        ctk.CTkLabel(self.tab_visual, text="Dibujar Firma:", text_color="gray", font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10)
+        ctk.CTkLabel(self.tab_visual, text="Dibujar Firma:", text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10)
         
-        self.canvas_frame = ctk.CTkFrame(self.tab_visual, fg_color="white", border_width=1, border_color="gray")
+        self.canvas_frame = ctk.CTkFrame(self.tab_visual, fg_color=Theme.SURFACE, border_width=1, border_color="gray")
         self.canvas_frame.pack(fill="x", padx=10, pady=5)
         
         self.canvas = Canvas(self.canvas_frame, height=120, bg="white", highlightthickness=0)
@@ -474,12 +481,12 @@ class SignPdfPage(BasePage):
         self.btn_sign_visual.pack(side="bottom", fill="x", padx=10, pady=20)
     
     def setup_digital_tab(self):
-        ctk.CTkLabel(self.tab_digital, text="Certificado (.p12 / .pfx):", text_color="gray", font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10, pady=(10, 0))
+        ctk.CTkLabel(self.tab_digital, text="Certificado (.p12 / .pfx):", text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10, pady=(10, 0))
         self.cert_entry = ctk.CTkEntry(self.tab_digital, placeholder_text="Seleccionar archivo...")
         self.cert_entry.pack(fill="x", padx=10, pady=5)
         ctk.CTkButton(self.tab_digital, text="Explorar", command=self.browse_cert, width=80, height=25).pack(anchor="e", padx=10)
         
-        ctk.CTkLabel(self.tab_digital, text="Contraseña:", text_color="gray", font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10, pady=(10, 0))
+        ctk.CTkLabel(self.tab_digital, text="Contraseña:", text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 12)).pack(anchor="w", padx=10, pady=(10, 0))
         self.pass_entry = ctk.CTkEntry(self.tab_digital, show="*")
         self.pass_entry.pack(fill="x", padx=10, pady=5)
         

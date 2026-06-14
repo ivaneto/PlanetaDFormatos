@@ -1,4 +1,4 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import os
 from app.gui.theme import Theme
 
@@ -19,16 +19,16 @@ class FileListFrame(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(self.header_frame, text=title, font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN)
         self.title_label.pack(side="left")
         
-        self.count_label = ctk.CTkLabel(self.header_frame, text="0 archivos", text_color="gray", font=(Theme.FONT_FAMILY, 12))
+        self.count_label = ctk.CTkLabel(self.header_frame, text="0 archivos", text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 12))
         self.count_label.pack(side="right")
         
         # Scrollable list
-        self.scroll_frame = ctk.CTkScrollableFrame(self, corner_radius=10, fg_color="white") # White background for list
+        self.scroll_frame = ctk.CTkScrollableFrame(self, corner_radius=10, fg_color=Theme.SURFACE) # White background for list
         self.scroll_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
         
         # Placeholder
         self.placeholder_label = ctk.CTkLabel(self.scroll_frame, text="Ningún archivo seleccionado.\nUsa el botón 'Añadir archivos' para comenzar.",
-                                            text_color="gray", font=(Theme.FONT_FAMILY, 14))
+                                            text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 14))
         self.placeholder_label.pack(pady=80, expand=True)
         
     def add_file(self, filepath):
@@ -62,11 +62,10 @@ class FileListFrame(ctk.CTkFrame):
         
         if not self.files:
             self.placeholder_label = ctk.CTkLabel(self.scroll_frame, text="Ningún archivo seleccionado.\nUsa el botón 'Añadir archivos' para comenzar.",
-                                                text_color="gray", font=(Theme.FONT_FAMILY, 14))
+                                                text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 14))
             self.placeholder_label.pack(pady=80, expand=True)
             return
-            return
-        
+
         # Add items
         for filepath in self.files:
             self._create_file_item(filepath)
@@ -101,7 +100,7 @@ class FileListFrame(ctk.CTkFrame):
         name_label = ctk.CTkLabel(info_frame, text=filename, anchor="w", font=(Theme.FONT_FAMILY, 13, "bold"), text_color=Theme.TEXT_MAIN)
         name_label.pack(fill="x")
         
-        path_label = ctk.CTkLabel(info_frame, text=filepath, anchor="w", text_color="gray", font=(Theme.FONT_FAMILY, 11))
+        path_label = ctk.CTkLabel(info_frame, text=filepath, anchor="w", text_color=Theme.TEXT_MUTED, font=(Theme.FONT_FAMILY, 11))
         path_label.pack(fill="x")
         
         # Button to remove
@@ -146,20 +145,46 @@ class FileListFrame(ctk.CTkFrame):
         )
         up_btn.pack(side="right", padx=2)
 
+        # Asociar la ruta al frame para localizarlo durante el arrastre.
+        item_frame._filepath = filepath
+
         # Bind drag events to frame and children (except buttons)
-        for widget in [item_frame, item_frame.master, info_frame, name_label, path_label]:
-           if widget == item_frame.master: continue
-           
-           widget.bind("<Button-1>", lambda e, f=filepath: self._start_drag(e, f))
-           widget.bind("<B1-Motion>", self._on_drag)
-           widget.bind("<ButtonRelease-1>", self._stop_drag)
+        for widget in [item_frame, info_frame, name_label, path_label]:
+            widget.bind("<Button-1>", lambda e, f=filepath: self._start_drag(e, f))
+            widget.bind("<B1-Motion>", self._on_drag)
+            widget.bind("<ButtonRelease-1>", self._stop_drag)
+
+    def _item_frames(self):
+        """Devuelve los frames de elementos en el orden visual actual."""
+        return [w for w in self.scroll_frame.winfo_children()
+                if isinstance(w, ctk.CTkFrame) and hasattr(w, "_filepath")]
+
+    def _target_index_at(self, y_root):
+        """Índice de inserción según la posición vertical del cursor (puntos medios)."""
+        frames = self._item_frames()
+        if not frames:
+            return None
+        for i, fr in enumerate(frames):
+            mid = fr.winfo_rooty() + fr.winfo_height() / 2
+            if y_root < mid:
+                return i
+        return len(frames) - 1
 
     def _start_drag(self, event, filepath):
-        self._drag_data = {"filepath": filepath, "start_y": event.y_root}
+        self._drag_data = {"filepath": filepath}
         self.configure(cursor="hand2")
 
     def _on_drag(self, event):
-        pass
+        # Realimentación visual: resaltar el elemento bajo el cursor.
+        if not hasattr(self, '_drag_data'):
+            return
+        idx = self._target_index_at(event.y_root)
+        frames = self._item_frames()
+        for i, fr in enumerate(frames):
+            try:
+                fr.configure(fg_color=Theme.ACCENT_SOFT if i == idx else Theme.BACKGROUND)
+            except Exception:
+                pass
 
     def _stop_drag(self, event):
         self.configure(cursor="")
@@ -167,54 +192,15 @@ class FileListFrame(ctk.CTkFrame):
             return
 
         source_filepath = self._drag_data["filepath"]
-        
-        # Find widget under mouse
-        x, y = event.x_root, event.y_root
-        target_widget = self.winfo_containing(x, y)
-        scroll_frame_y = self.scroll_frame.winfo_rooty()
-        
-        # If we are outside the list, do nothing
-        if not (self.scroll_frame.winfo_rootx() < x < self.scroll_frame.winfo_rootx() + self.scroll_frame.winfo_width()):
-             del self._drag_data
-             return
+        del self._drag_data
 
-        target_index = -1
-        
-        children = self.scroll_frame.winfo_children()
-        if not self.files: 
-             del self._drag_data
-             return
+        target_index = self._target_index_at(event.y_root)
+        if target_index is None or source_filepath not in self.files:
+            self.refresh_list()
+            return
 
-        mouse_y_rel = y - scroll_frame_y + self.scroll_frame._parent_canvas.yview()[0] * self.scroll_frame.winfo_height() 
-
-        found = False
-        for i, child in enumerate(children):
-            if not isinstance(child, ctk.CTkFrame): continue # Skip non-item frames if any
-            
-            child_y = child.winfo_rooty()
-            child_h = child.winfo_height()
-            
-            if child_y <= y <= child_y + child_h:
-                target_index = i
-                found = True
-                break
-        
-        if not found:
-             # If below the last item
-             last_child = children[-1]
-             if y > last_child.winfo_rooty() + last_child.winfo_height():
-                 target_index = len(self.files) - 1
-             elif y < children[0].winfo_rooty():
-                 target_index = 0
-        
-        if target_index != -1 and target_index < len(self.files):
-            source_index = self.files.index(source_filepath)
-            
-            if source_index != target_index:
-                # Move item
-                self.files.pop(source_index)
-                self.files.insert(target_index, source_filepath)
-                self.refresh_list()
-        
-        if hasattr(self, '_drag_data'):
-            del self._drag_data
+        source_index = self.files.index(source_filepath)
+        if source_index != target_index:
+            self.files.pop(source_index)
+            self.files.insert(target_index, source_filepath)
+        self.refresh_list()

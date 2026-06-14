@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.pdf_editor import PDFEditorBackend
 from app.gui.theme import Theme
@@ -39,17 +40,17 @@ class ProtectPage(BasePage):
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # Input PDF Section
-        input_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        input_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         input_frame.pack(fill="x", pady=10, padx=20)
         ctk.CTkLabel(input_frame, text="PDF de Entrada:", font=(Theme.FONT_FAMILY, 14, "bold"), text_color=Theme.TEXT_MAIN).pack(side="left", padx=20, pady=20)
         
-        self.file_label = ctk.CTkLabel(input_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color="gray")
+        self.file_label = ctk.CTkLabel(input_frame, text="Ningún archivo seleccionado", width=300, font=(Theme.FONT_FAMILY, 14), text_color=Theme.TEXT_MUTED)
         self.file_label.pack(side="left", padx=10, fill="x", expand=True)
         ctk.CTkButton(input_frame, text="Explorar...", command=self.browse_pdf, width=100,
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="left", padx=20, pady=20)
 
         # Password Section
-        pw_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        pw_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         pw_frame.pack(fill="x", pady=10, padx=20)
         
         ctk.CTkLabel(pw_frame, text="Contraseñas", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=10, padx=20, anchor="w")
@@ -67,10 +68,10 @@ class ProtectPage(BasePage):
         ctk.CTkEntry(row2, textvariable=self.owner_pw, show="*", width=300).pack(side="left", fill="x", expand=True)
         
         ctk.CTkLabel(pw_frame, text="* La contraseña de propietario es necesaria para cambiar permisos en el futuro.", 
-                     font=(Theme.FONT_FAMILY, 12, "italic"), text_color="gray").pack(pady=10, padx=20, anchor="w")
+                     font=(Theme.FONT_FAMILY, 12, "italic"), text_color=Theme.TEXT_MUTED).pack(pady=10, padx=20, anchor="w")
 
         # Permissions Section
-        perm_frame = ctk.CTkFrame(content_frame, fg_color="white", corner_radius=10)
+        perm_frame = ctk.CTkFrame(content_frame, fg_color=Theme.SURFACE, corner_radius=10)
         perm_frame.pack(fill="x", pady=10, padx=20)
         
         ctk.CTkLabel(perm_frame, text="Permisos permitidos", font=(Theme.FONT_FAMILY, 16, "bold"), text_color=Theme.TEXT_MAIN).pack(pady=10, padx=20, anchor="w")
@@ -85,7 +86,7 @@ class ProtectPage(BasePage):
 
         # Action Button
         ctk.CTkButton(self.content_frame, text="Proteger PDF", command=self.protect_pdf, 
-                      fg_color=Theme.SUCCESS, hover_color="#0C955A", font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=20)
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 18, "bold"), width=250, height=50).pack(pady=20)
         
         self.enable_dnd()
 
@@ -161,7 +162,7 @@ class ProtectPage(BasePage):
            if success:
                messagebox.showinfo("Éxito", "El PDF ha sido protegido exitosamente.")
                self.full_input_path = ""
-               self.file_label.configure(text="Ningún archivo seleccionado", text_color="gray")
+               self.file_label.configure(text="Ningún archivo seleccionado", text_color=Theme.TEXT_MUTED)
                self.user_pw.set("")
                self.owner_pw.set("")
            else:

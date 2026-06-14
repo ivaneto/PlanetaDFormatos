@@ -1,5 +1,6 @@
-import customtkinter as ctk
-from tkinter import filedialog, messagebox, Canvas
+﻿import customtkinter as ctk
+from tkinter import filedialog, Canvas
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.gui.theme import Theme
 import fitz # PyMuPDF
@@ -42,11 +43,11 @@ class RotateCard(ctk.CTkFrame):
         self.bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.bottom_frame.pack(fill="x", padx=5, pady=(0, 5))
         
-        self.lbl_num = ctk.CTkLabel(self.bottom_frame, text=f"Página {page_num + 1}", font=(Theme.FONT_FAMILY, 12), text_color="gray")
+        self.lbl_num = ctk.CTkLabel(self.bottom_frame, text=f"Página {page_num + 1}", font=(Theme.FONT_FAMILY, 12), text_color=Theme.TEXT_MUTED)
         self.lbl_num.pack(side="left", padx=5)
         
         self.btn_delete = ctk.CTkButton(self.bottom_frame, text="🗑", width=25, height=25,
-                                        fg_color="transparent", text_color="#FF4444", hover_color="#FFEEEE",
+                                        fg_color="transparent", text_color=Theme.DANGER, hover_color="#FFEEEE",
                                         font=(Theme.FONT_FAMILY, 14),
                                         command=lambda: on_delete(self))
         self.btn_delete.pack(side="right", padx=5)
@@ -107,7 +108,7 @@ class RotatePage(BasePage):
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="right", padx=10)
         
         self.btn_save = ctk.CTkButton(top_bar, text="Guardar PDF", command=self.save_pdf, state="disabled",
-                                      fg_color="#2CC985", hover_color="#0C955A")
+                                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER)
         self.btn_save.pack(side="right", padx=10)
 
         # --- Área de contenido ---
@@ -381,15 +382,15 @@ class RotatePage(BasePage):
         try:
             output_pdf_name = f"converted_images_{os.getpid()}_{threading.get_ident()}.pdf"
             output_pdf = os.path.join(temp_dir, output_pdf_name)
-            
-            label_lbl.configure(text="Procesando imágenes...")
-            progress.set(0.5)
-            
+
+            self.ui(lambda: label_lbl.configure(text="Procesando imágenes..."))
+            self.ui(lambda: progress.set(0.5))
+
             Converter.images_to_pdf(images, output_pdf)
-            
-            progress.set(1.0)
-            status_lbl.configure(text="Hecho")
-            
+
+            self.ui(lambda: progress.set(1.0))
+            self.ui(lambda: status_lbl.configure(text="Hecho"))
+
             self.after(0, lambda p=output_pdf: self.load_pdf(p, append=True))
             
         except Exception as e:
@@ -409,18 +410,18 @@ class RotatePage(BasePage):
         
         for i, doc_path in enumerate(files):
             prog = i / total
-            progress.set(prog)
-            label_lbl.configure(text=f"Convirtiendo: {os.path.basename(doc_path)}")
-            status_lbl.configure(text=f"{i+1} / {total}")
-            
+            self.ui(lambda p=prog: progress.set(p))
+            self.ui(lambda d=doc_path: label_lbl.configure(text=f"Convirtiendo: {os.path.basename(d)}"))
+            self.ui(lambda i=i: status_lbl.configure(text=f"{i+1} / {total}"))
+
             try:
                 output_pdf_name = f"converted_{os.path.basename(doc_path)}.pdf"
                 output_pdf = os.path.join(temp_dir, output_pdf_name)
-                
+
                 Converter.word_to_pdf(doc_path, output_pdf)
-                
+
                 self.after(0, lambda p=output_pdf: self.load_pdf(p, append=True))
-                
+
             except Exception as e:
                 print(f"Error al convertir archivo Word {doc_path}: {e}")
         
@@ -437,18 +438,18 @@ class RotatePage(BasePage):
         
         for i, ppt_path in enumerate(files):
             prog = i / total
-            progress.set(prog)
-            label_lbl.configure(text=f"Convirtiendo: {os.path.basename(ppt_path)}")
-            status_lbl.configure(text=f"{i+1} / {total}")
-            
+            self.ui(lambda p=prog: progress.set(p))
+            self.ui(lambda d=ppt_path: label_lbl.configure(text=f"Convirtiendo: {os.path.basename(d)}"))
+            self.ui(lambda i=i: status_lbl.configure(text=f"{i+1} / {total}"))
+
             try:
                 output_pdf_name = f"converted_{os.path.basename(ppt_path)}.pdf"
                 output_pdf = os.path.join(temp_dir, output_pdf_name)
-                
+
                 Converter.powerpoint_to_pdf(ppt_path, output_pdf)
-                
+
                 self.after(0, lambda p=output_pdf: self.load_pdf(p, append=True))
-                
+
             except Exception as e:
                 print(f"Error al convertir archivo PPT {ppt_path}: {e}")
         

@@ -1,7 +1,10 @@
-
+﻿
 import fitz  # PyMuPDF
 from pypdf import PdfWriter, PdfReader
 import io
+from app.core.logger import get_logger
+
+LOG = get_logger(__name__)
 
 class PDFEditorBackend:
     def __init__(self):
@@ -123,7 +126,7 @@ class PDFEditorBackend:
             out_doc.close()
             return True
         except Exception as e:
-            print(f"Error al aplanar el PDF: {e}")
+            LOG.error(f"Error al aplanar el PDF: {e}")
             return False
 
     def encrypt_pdf(self, input_path, output_path, user_pw, owner_pw, permissions):
@@ -168,7 +171,7 @@ class PDFEditorBackend:
             
             return True
         except Exception as e:
-            print(f"Error al cifrar el PDF: {e}")
+            LOG.error(f"Error al cifrar el PDF: {e}")
             return False
 
     def unlock_pdf(self, input_path, output_path, password):
@@ -180,7 +183,7 @@ class PDFEditorBackend:
             
             if doc.is_encrypted:
                 if not doc.authenticate(password):
-                    print("Contraseña incorrecta")
+                    LOG.warning("Contraseña incorrecta")
                     doc.close()
                     return False
             
@@ -189,7 +192,7 @@ class PDFEditorBackend:
             doc.close()
             return True
         except Exception as e:
-            print(f"Error al desbloquear el PDF: {e}")
+            LOG.error(f"Error al desbloquear el PDF: {e}")
             return False
 
     def get_metadata(self, input_path):
@@ -202,7 +205,7 @@ class PDFEditorBackend:
             doc.close()
             return metadata
         except Exception as e:
-            print(f"Error al leer los metadatos: {e}")
+            LOG.error(f"Error al leer los metadatos: {e}")
             return {}
 
     def save_metadata(self, input_path, output_path, metadata):
@@ -217,7 +220,7 @@ class PDFEditorBackend:
             doc.close()
             return True
         except Exception as e:
-            print(f"Error al guardar los metadatos: {e}")
+            LOG.error(f"Error al guardar los metadatos: {e}")
             return False
 
     def repair_pdf(self, input_path, output_path):
@@ -235,7 +238,7 @@ class PDFEditorBackend:
             doc.close()
             return True
         except Exception as e:
-            print(f"Error al reparar el PDF: {e}")
+            LOG.error(f"Error al reparar el PDF: {e}")
             return False
 
     def convert_to_pdfa(self, input_path, output_path):
@@ -296,7 +299,7 @@ class PDFEditorBackend:
             doc.close()
             return True
         except Exception as e:
-            print(f"Error al convertir a PDF/A: {e}")
+            LOG.error(f"Error al convertir a PDF/A: {e}")
             return False
 
     def is_pdfa(self, input_path):
@@ -312,6 +315,6 @@ class PDFEditorBackend:
                  return True
             return False
         except Exception as e:
-            print(f"Error al comprobar el estado de PDF/A: {e}")
+            LOG.error(f"Error al comprobar el estado de PDF/A: {e}")
             return False
 

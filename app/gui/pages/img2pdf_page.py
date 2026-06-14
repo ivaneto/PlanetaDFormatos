@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 from app.gui.pages.base_page import BasePage
 from app.core.converters import Converter
 import os
@@ -15,7 +16,7 @@ class Img2PdfPage(BasePage):
         self.content_frame.grid_rowconfigure(0, weight=1)
         
         # Control Panel
-        self.controls_frame = ctk.CTkFrame(self.content_frame, width=280, corner_radius=15, fg_color="white")
+        self.controls_frame = ctk.CTkFrame(self.content_frame, width=280, corner_radius=15, fg_color=Theme.SURFACE)
         self.controls_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         self.controls_frame.grid_propagate(False)
         
@@ -37,20 +38,20 @@ class Img2PdfPage(BasePage):
         
         # Info
         info_label = ctk.CTkLabel(self.controls_frame, text="Selecciona imágenes (JPG, PNG) para convertirlas en un solo archivo PDF. Puedes arrastrarlas dentro del campo para cambiar el orden de las imágenes.",
-                                text_color="gray", wraplength=240, justify="left", font=(Theme.FONT_FAMILY, 12))
+                                text_color=Theme.TEXT_MUTED, wraplength=240, justify="left", font=(Theme.FONT_FAMILY, 12))
         info_label.pack(pady=10, padx=20, anchor="w")
         
         ctk.CTkLabel(self.controls_frame, text="").pack(fill="y", expand=True)
         
         # Button to clear list
         self.btn_clear = ctk.CTkButton(self.controls_frame, text="Limpiar Lista", command=self.clear_images, 
-                                     fg_color="transparent", border_width=2, border_color="gray", text_color="gray", 
+                                     fg_color="transparent", border_width=2, border_color="gray", text_color=Theme.TEXT_MUTED, 
                                      height=40, hover_color="#EEEEEE")
         self.btn_clear.pack(pady=10, padx=20, fill="x")
         
         # Button to convert
         self.btn_convert = ctk.CTkButton(self.controls_frame, text="Convertir a PDF", command=self.convert_images, 
-                                     fg_color="#2CC985", hover_color="#0C955A", text_color="white",
+                                     fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, text_color="white",
                                      height=60, font=(Theme.FONT_FAMILY, 18, "bold"))
         self.btn_convert.pack(pady=(10, 30), padx=20, fill="x")
         

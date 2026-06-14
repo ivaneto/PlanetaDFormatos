@@ -18,6 +18,20 @@ class BasePage(ctk.CTkFrame):
     def create_widgets(self):
         pass
 
+    def ui(self, func):
+        """Programa una actualización de la interfaz para que se ejecute de forma
+        segura en el hilo principal de Tkinter.
+
+        Tkinter NO es thread-safe: cualquier llamada a widgets desde un hilo
+        secundario debe pasar por aquí (envuelve la llamada en ``after``).
+        Uso: ``self.ui(lambda: progress.set(0.5))``.
+        """
+        try:
+            self.after(0, func)
+        except Exception:
+            # El widget pudo haber sido destruido mientras el hilo seguía vivo.
+            pass
+
     def enable_dnd(self):
         try:
             self.drop_target_register(DND_FILES)

@@ -1,6 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 import os
 import threading
 
@@ -61,7 +62,7 @@ class ConversionToolsPage(BasePage):
         return handled
 
     def create_column_frame(self, title, icon):
-        frame = ctk.CTkFrame(self.cols_container, fg_color="white", corner_radius=15, border_width=1, border_color="gray80")
+        frame = ctk.CTkFrame(self.cols_container, fg_color=Theme.SURFACE, corner_radius=15, border_width=1, border_color="gray80")
         frame.pack(side="left", fill="both", expand=True, padx=10, pady=5)
         
         inner = ctk.CTkFrame(frame, fg_color="transparent")
@@ -91,7 +92,7 @@ class ConversionToolsPage(BasePage):
         self.chk_newlines.pack(pady=10, anchor="w")
         
         btn_extract = ctk.CTkButton(parent, text="Extraer Texto", command=self.run_extract_text,
-                                    fg_color="#E65100", hover_color="#F57C00", font=(Theme.FONT_FAMILY, 14, "bold"))
+                                    fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold"))
         btn_extract.pack(fill="x", pady=10)
         pass
 
@@ -131,7 +132,7 @@ class ConversionToolsPage(BasePage):
         self.tabview.add("URL")
         
         self.html_file_path = None
-        self.lbl_html_file = ctk.CTkLabel(self.tabview.tab("Archivo"), text="Ningún archivo seleccionado", text_color="gray")
+        self.lbl_html_file = ctk.CTkLabel(self.tabview.tab("Archivo"), text="Ningún archivo seleccionado", text_color=Theme.TEXT_MUTED)
         self.lbl_html_file.pack(pady=5)
         ctk.CTkButton(self.tabview.tab("Archivo"), text="Elegir HTML", command=self.select_html_file).pack()
         
@@ -147,10 +148,10 @@ class ConversionToolsPage(BasePage):
         opts_frame.grid_columnconfigure(0, weight=1)
         opts_frame.grid_columnconfigure(1, weight=1)
 
-        rb_basic = ctk.CTkRadioButton(opts_frame, text="Básico (Rápido)", variable=self.var_html_engine, value="basic", text_color=Theme.TEXT_MAIN, fg_color="#E65100")
+        rb_basic = ctk.CTkRadioButton(opts_frame, text="Básico (Rápido)", variable=self.var_html_engine, value="basic", text_color=Theme.TEXT_MAIN, fg_color=Theme.PRIMARY)
         rb_basic.grid(row=0, column=0, sticky="w", pady=2)
         
-        rb_adv = ctk.CTkRadioButton(opts_frame, text="Alta Calidad", variable=self.var_html_engine, value="playwright", text_color=Theme.TEXT_MAIN, fg_color="#E65100")
+        rb_adv = ctk.CTkRadioButton(opts_frame, text="Alta Calidad", variable=self.var_html_engine, value="playwright", text_color=Theme.TEXT_MAIN, fg_color=Theme.PRIMARY)
         rb_adv.grid(row=0, column=1, sticky="w", pady=2)
 
         # Opciones Avanzadas
@@ -160,7 +161,7 @@ class ConversionToolsPage(BasePage):
         self.chk_landscape = ctk.CTkCheckBox(self.adv_opts_frame, text="Horizontal", text_color=Theme.TEXT_MAIN)
         self.chk_landscape.pack(side="left", padx=5)
         
-        self.opt_format = ctk.CTkOptionMenu(self.adv_opts_frame, values=["A4", "Letter", "Legal"], width=80, fg_color="#E65100", button_color="#EF6C00")
+        self.opt_format = ctk.CTkOptionMenu(self.adv_opts_frame, values=["A4", "Letter", "Legal"], width=80, fg_color=Theme.PRIMARY, button_color=Theme.PRIMARY_HOVER)
         self.opt_format.pack(side="right", padx=5)
         
         def _toggle_opts(*args):
@@ -173,7 +174,7 @@ class ConversionToolsPage(BasePage):
         _toggle_opts() # inicializar
         
         btn_convert = ctk.CTkButton(parent, text="Convertir a PDF", command=self.run_html_to_pdf,
-                                    fg_color="#E65100", hover_color="#F57C00", font=(Theme.FONT_FAMILY, 14, "bold"))
+                                    fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold"))
         btn_convert.pack(fill="x", pady=10)
 
     def select_html_file(self):
@@ -247,11 +248,11 @@ class ConversionToolsPage(BasePage):
         
         ctk.CTkButton(self.html_pdf_frame, text="Elegir PDF", command=self.select_pdf_for_html).pack(pady=(5, 20))
         
-        info_lbl = ctk.CTkLabel(parent, text="Modo Visual", text_color="gray", font=("Arial", 12))
+        info_lbl = ctk.CTkLabel(parent, text="Modo Visual", text_color=Theme.TEXT_MUTED, font=("Arial", 12))
         info_lbl.pack(pady=10)
         
         btn_convert = ctk.CTkButton(parent, text="Convertir a HTML", command=self.run_pdf_to_html,
-                                    fg_color="#E65100", hover_color="#F57C00", font=(Theme.FONT_FAMILY, 14, "bold"))
+                                    fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, font=(Theme.FONT_FAMILY, 14, "bold"))
         btn_convert.pack(fill="x", pady=20)
 
     def select_pdf_for_html(self):
@@ -300,7 +301,7 @@ class ConversionToolsPage(BasePage):
         self.progress_label = ctk.CTkLabel(self.prog_win, text="0 / ?")
         self.progress_label.pack(pady=5)
         
-        ctk.CTkButton(self.prog_win, text="Cancelar", command=self.cancel_conversion, fg_color="#FF4444", hover_color="#CC0000").pack(pady=20)
+        ctk.CTkButton(self.prog_win, text="Cancelar", command=self.cancel_conversion, fg_color=Theme.DANGER, hover_color=Theme.DANGER_HOVER).pack(pady=20)
         
         def _progress_cb(current, total):
             if self.cancel_conversion_flag: return

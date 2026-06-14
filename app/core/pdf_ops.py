@@ -118,39 +118,51 @@ class PDFOperations:
             f.write('\n'.join(list(diff)))
 
     @staticmethod
-    def add_page_numbers(pdf_path, output_path, position='bottom-right'):
+    def add_page_numbers(pdf_path, output_path, position='bottom-right',
+                         fmt="{n}", start_at=1, skip_first=False,
+                         font_size=11, margin=30):
         """
         Add page numbers to a PDF.
         :param pdf_path: Path to source PDF
         :param output_path: Path to save modified PDF
-        :param position: Page number position (currently only 'bottom-right' is supported)
+        :param position: One of bottom-left/center/right, top-left/center/right
+        :param fmt: Format string. Supports {n} (number) and {total} (page count).
+        :param start_at: Number assigned to the first numbered page.
+        :param skip_first: If True, the first page is not numbered (e.g. cover).
+        :param font_size: Font size in points.
+        :param margin: Distance (points) from the page edge.
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
+        total = len(reader.pages)
 
         for i, page in enumerate(reader.pages):
-            # Create a temporary PDF with page number
-            packet = io.BytesIO()
-            # Use the original page size if possible, otherwise default to letter
+            if skip_first and i == 0:
+                writer.add_page(page)
+                continue
+
             width = float(page.mediabox.width)
             height = float(page.mediabox.height)
-            
+
+            packet = io.BytesIO()
             c = canvas.Canvas(packet, pagesize=(width, height))
-            
-            page_num_text = f"{i + 1}"
-            
-            if position == 'bottom-right':
-                c.drawString(width - 50, 20, page_num_text)
-            elif position == 'bottom-center':
-                c.drawCentredString(width / 2, 20, page_num_text)
-            elif position == 'bottom-left':
-                c.drawString(50, 20, page_num_text)
-            else:
-                c.drawString(width - 50, 20, page_num_text) # Default
-                
+            c.setFont("Helvetica", font_size)
+
+            number = start_at + (i - 1 if skip_first else i)
+            text = fmt.format(n=number, total=total)
+
+            y = (height - margin) if position.startswith("top") else margin
+
+            if position.endswith("right"):
+                c.drawRightString(width - margin, y, text)
+            elif position.endswith("center"):
+                c.drawCentredString(width / 2, y, text)
+            else:  # left
+                c.drawString(margin, y, text)
+
             c.save()
             packet.seek(0)
-            
+
             number_pdf = PdfReader(packet)
             page.merge_page(number_pdf.pages[0])
             writer.add_page(page)
@@ -179,23 +191,70 @@ class PDFOperations:
             writer.write(f)
 
     @staticmethod
-    def compress_pdf(pdf_path, output_path):
+    def compress_pdf(pdf_path, output_path, level="medium"):
         """
-        This is lossless compression (mostly) and might not significantly reduce image size.
+        Compress a PDF. Unlike a purely lossless pass, this recompresses (and
+        optionally downsamples) embedded raster images, which is where most of
+        the size of scanned/image-heavy PDFs lives.
+
         :param pdf_path: Path to source PDF
         :param output_path: Path to save compressed PDF
+        :param level: 'low' (smallest), 'medium' (balanced), 'high' (best quality).
+        :return: Tuple (original_bytes, compressed_bytes).
         """
-        reader = PdfReader(pdf_path)
-        writer = PdfWriter()
+        from PIL import Image
 
-        for page in reader.pages:
-            writer.add_page(page)
+        # JPEG quality and maximum pixel dimension per level.
+        quality_map = {"low": 50, "medium": 70, "high": 85}
+        max_dim_map = {"low": 1000, "medium": 1600, "high": 2200}
+        quality = quality_map.get(level, 70)
+        max_dim = max_dim_map.get(level, 1600)
 
-        for page in writer.pages:
-            page.compress_content_streams()
-            
-        with open(output_path, "wb") as f:
-            writer.write(f)
+        doc = fitz.open(pdf_path)
+        try:
+            seen = set()
+            for page in doc:
+                for img in page.get_images(full=True):
+                    xref = img[0]
+                    if xref in seen:
+                        continue
+                    seen.add(xref)
+                    try:
+                        info = doc.extract_image(xref)
+                        if not info:
+                            continue
+                        original = info["image"]
+                        pil = Image.open(io.BytesIO(original))
+
+                        w, h = pil.size
+                        scale = min(1.0, max_dim / float(max(w, h)))
+                        if scale < 1.0:
+                            pil = pil.resize(
+                                (max(1, int(w * scale)), max(1, int(h * scale))),
+                                Image.LANCZOS,
+                            )
+                        if pil.mode in ("RGBA", "P", "LA"):
+                            pil = pil.convert("RGB")
+
+                        buf = io.BytesIO()
+                        pil.save(buf, format="JPEG", quality=quality, optimize=True)
+                        new_bytes = buf.getvalue()
+
+                        # Solo reemplazar si realmente reduce el tamaño y la API existe.
+                        if len(new_bytes) < len(original) and hasattr(page, "replace_image"):
+                            page.replace_image(xref, stream=new_bytes)
+                    except Exception:
+                        # Imagen no recomprimible (vectorial, máscara, etc.): se ignora.
+                        continue
+
+            # Guardado optimizado: limpia objetos, deduplica y deflacta.
+            doc.save(output_path, garbage=4, deflate=True, clean=True)
+        finally:
+            doc.close()
+
+        orig_size = os.path.getsize(pdf_path)
+        new_size = os.path.getsize(output_path)
+        return orig_size, new_size
 
 class PDFManager:
     @staticmethod
@@ -279,56 +338,69 @@ class PDFManager:
                 writer.write(out)
 
     @staticmethod
-    def add_watermark(pdf_path, output_path, watermark_text=None, watermark_image=None, opacity=0.5, rotation=45):
+    def add_watermark(pdf_path, output_path, watermark_text=None, watermark_image=None,
+                      opacity=0.5, rotation=45, tile=False, font_size=50):
         """
-        Add a watermark (text or image) to a PDF.
+        Add a watermark (text or image) to a PDF. The watermark is generated per
+        page using the real page dimensions, so it stays centered regardless of
+        page size or orientation.
+
         :param pdf_path: Path to input PDF
         :param output_path: Path to save watermarked PDF
         :param watermark_text: Text to use as watermark
         :param watermark_image: Path to image to use as watermark
         :param opacity: Watermark opacity (0.0 to 1.0)
         :param rotation: Rotation angle in degrees
+        :param tile: If True, repeat the watermark across the whole page.
+        :param font_size: Base font size for the text watermark.
         """
         reader = PdfReader(pdf_path)
         writer = PdfWriter()
 
-        # Create watermark PDF in memory
-        packet = io.BytesIO()
-        # Use default page size, but we will adjust scale later if necessary
-        c = canvas.Canvas(packet, pagesize=letter)
-        
-        # Set transparency
-        c.setFillAlpha(opacity)
-        c.setStrokeAlpha(opacity)
+        img_reader = ImageReader(watermark_image) if watermark_image else None
+        img_aspect = None
+        if img_reader:
+            iw, ih = img_reader.getSize()
+            img_aspect = ih / float(iw)
 
-        if watermark_text:
+        def _draw(c, cx, cy, pw):
             c.saveState()
-            c.translate(300, 400) # Approximate center
+            c.translate(cx, cy)
             c.rotate(rotation)
-            c.setFont("Helvetica-Bold", 50)
-            c.drawCentredString(0, 0, watermark_text)
+            if watermark_text:
+                c.setFont("Helvetica-Bold", font_size)
+                c.drawCentredString(0, 0, watermark_text)
+            if watermark_image:
+                w = pw * 0.4
+                h = w * img_aspect
+                c.drawImage(watermark_image, -w / 2, -h / 2, width=w, height=h, mask='auto')
             c.restoreState()
-        
-        if watermark_image:
-            c.saveState()
-            c.translate(300, 400)
-            c.rotate(rotation)
-            # Draw image centered
-            img = ImageReader(watermark_image)
-            iw, ih = img.getSize()
-            aspect = ih / float(iw)
-            width = 400
-            height = width * aspect
-            c.drawImage(watermark_image, -width/2, -height/2, width=width, height=height, mask='auto')
-            c.restoreState()
-
-        c.save()
-        packet.seek(0)
-        watermark_pdf = PdfReader(packet)
-        watermark_page = watermark_pdf.pages[0]
 
         for page in reader.pages:
-            # Merge watermark with page
+            pw = float(page.mediabox.width)
+            ph = float(page.mediabox.height)
+
+            packet = io.BytesIO()
+            c = canvas.Canvas(packet, pagesize=(pw, ph))
+            c.setFillAlpha(opacity)
+            c.setStrokeAlpha(opacity)
+
+            if tile:
+                step_x = max(pw / 3, 200)
+                step_y = max(ph / 4, 150)
+                y = step_y / 2
+                while y < ph:
+                    x = step_x / 2
+                    while x < pw:
+                        _draw(c, x, y, pw)
+                        x += step_x
+                    y += step_y
+            else:
+                _draw(c, pw / 2, ph / 2, pw)
+
+            c.save()
+            packet.seek(0)
+            watermark_page = PdfReader(packet).pages[0]
             page.merge_page(watermark_page)
             writer.add_page(page)
 

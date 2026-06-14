@@ -1,9 +1,7 @@
-import customtkinter as ctk
+﻿import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
-import customtkinter as ctk
-import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from app.gui.components import dialogs as messagebox
 import threading
 from app.gui.pages.base_page import BasePage
 from app.gui.theme import Theme
@@ -52,7 +50,7 @@ class MergePage(BasePage):
                       fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER).pack(side="right")
         
         # Scrollable Area
-        self.source_scroll = ctk.CTkScrollableFrame(self.source_container, fg_color="white")
+        self.source_scroll = ctk.CTkScrollableFrame(self.source_container, fg_color=Theme.SURFACE)
         self.source_scroll.pack(fill="both", expand=True)
 
         sep = ctk.CTkFrame(self.content_frame, height=2, fg_color="gray80")
@@ -72,21 +70,21 @@ class MergePage(BasePage):
         dest_controls.pack(side="right")
         
         # Button to delete range
-        ctk.CTkLabel(dest_controls, text="Rango a eliminar:", font=(Theme.FONT_FAMILY, 10), text_color="gray").pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(dest_controls, text="Rango a eliminar:", font=(Theme.FONT_FAMILY, 10), text_color=Theme.TEXT_MUTED).pack(side="left", padx=(0, 2))
         dest_range_entry = ctk.CTkEntry(dest_controls, width=60, height=25, font=(Theme.FONT_FAMILY, 11), placeholder_text="ej. 5-9")
         dest_range_entry.pack(side="left", padx=2)
         ctk.CTkButton(dest_controls, text="🗑", width=30, height=25, 
-                      fg_color="#FF4444", hover_color="#CC0000",
+                      fg_color=Theme.DANGER, hover_color=Theme.DANGER_HOVER,
                       command=lambda: self.delete_dest_range(dest_range_entry.get())).pack(side="left", padx=(0, 10))
   
         ctk.CTkButton(dest_controls, text="Crear PDF", command=self.create_pdf, width=100, height=30,
-                      fg_color="#2CC985", hover_color="#0C955A", font=(Theme.FONT_FAMILY, 13, "bold")).pack(side="left")
+                      fg_color=Theme.SUCCESS, hover_color=Theme.SUCCESS_HOVER, font=(Theme.FONT_FAMILY, 13, "bold")).pack(side="left")
         
         # Scrollable Timeline
-        self.timeline_scroll = ctk.CTkScrollableFrame(self.dest_container, orientation="horizontal", height=220, fg_color="white")
+        self.timeline_scroll = ctk.CTkScrollableFrame(self.dest_container, orientation="horizontal", height=220, fg_color=Theme.SURFACE)
         self.timeline_scroll.pack(fill="x", expand=True)
         
-        self.timeline_placeholder = ctk.CTkLabel(self.timeline_scroll, text="Arrastra las páginas aquí", text_color="gray")
+        self.timeline_placeholder = ctk.CTkLabel(self.timeline_scroll, text="Arrastra las páginas aquí", text_color=Theme.TEXT_MUTED)
         self.timeline_placeholder.pack(pady=60, padx=200)
 
     def add_file(self):
@@ -115,7 +113,7 @@ class MergePage(BasePage):
         ctk.CTkLabel(info_frame, text=display_name, font=(Theme.FONT_FAMILY, 11, "bold"), wraplength=130, text_color=Theme.PRIMARY).pack(anchor="w")
         
         page_count = ThumbnailManager.get_pdf_page_count(filepath)
-        ctk.CTkLabel(info_frame, text=f"{page_count} páginas", font=(Theme.FONT_FAMILY, 9), text_color="gray").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=f"{page_count} páginas", font=(Theme.FONT_FAMILY, 9), text_color=Theme.TEXT_MUTED).pack(anchor="w")
         
         # File Reference
         self.source_files.append({"path": filepath, "widget": row_frame, "letter": letter, "page_count": page_count})
@@ -125,7 +123,7 @@ class MergePage(BasePage):
         controls_frame.pack(anchor="w", pady=(5, 0))
         
         # Range Entry
-        ctk.CTkLabel(controls_frame, text="Rango:", font=(Theme.FONT_FAMILY, 9), text_color="gray").pack(side="left")
+        ctk.CTkLabel(controls_frame, text="Rango:", font=(Theme.FONT_FAMILY, 9), text_color=Theme.TEXT_MUTED).pack(side="left")
         range_entry = ctk.CTkEntry(controls_frame, width=60, height=20, font=(Theme.FONT_FAMILY, 10), placeholder_text="2-5(, 6-8)")
         range_entry.pack(side="left", padx=2)
         
@@ -136,7 +134,7 @@ class MergePage(BasePage):
 
         # Trash Button (Remove File)
         ctk.CTkButton(controls_frame, text="🗑", width=20, height=20, 
-                      fg_color="#FF4444", hover_color="#CC0000",
+                      fg_color=Theme.DANGER, hover_color=Theme.DANGER_HOVER,
                       command=lambda w=row_frame: self.remove_source_file(w)).pack(side="left", padx=(5, 0))
 
         # Thumbnail Container (Horizontal)
@@ -225,12 +223,10 @@ class MergePage(BasePage):
             messagebox.showerror("Error", f"Ocurrió un error inesperado: {str(e)}")
 
     def load_thumbnails(self, filepath, page_count, parent_frame):
-        # This runs in a thread
-        for i in range(page_count):
-            img = ThumbnailManager.get_page_thumbnail(filepath, i, size=(90, 120))
-            if img:
-                # Update UI in main thread
-                self.after(0, lambda p=parent_frame, im=img, idx=i, fp=filepath: self.add_thumbnail_widget(p, im, idx, fp))
+        # This runs in a thread. Open the PDF only once via iter_thumbnails.
+        for i, img in ThumbnailManager.iter_thumbnails(filepath, size=(90, 120)):
+            # Update UI in main thread
+            self.after(0, lambda p=parent_frame, im=img, idx=i, fp=filepath: self.add_thumbnail_widget(p, im, idx, fp))
 
     def add_thumbnail_widget(self, parent, pil_image, page_num, filepath):
         ctk_img = ctk.CTkImage(light_image=pil_image, dark_image=pil_image, size=(90, 120))
@@ -260,7 +256,7 @@ class MergePage(BasePage):
                 widget.destroy()
                 
         if not self.destination_pages:
-            self.timeline_placeholder = ctk.CTkLabel(self.timeline_scroll, text="Arrastra las páginas aquí", text_color="gray")
+            self.timeline_placeholder = ctk.CTkLabel(self.timeline_scroll, text="Arrastra las páginas aquí", text_color=Theme.TEXT_MUTED)
             self.timeline_placeholder.pack(pady=60, padx=200)
             return
  
@@ -418,22 +414,22 @@ class MergePage(BasePage):
         temp_dir = tempfile.gettempdir()
         
         for i, doc_path in enumerate(files):
-            # Update UI
+            # Update UI (siempre en el hilo principal)
             prog = (i) / total
-            progress.set(prog)
-            label_lbl.configure(text=f"Convirtiendo: {os.path.basename(doc_path)}")
-            status_lbl.configure(text=f"{i+1} / {total}")
-            
+            self.ui(lambda p=prog: progress.set(p))
+            self.ui(lambda d=doc_path: label_lbl.configure(text=f"Convirtiendo: {os.path.basename(d)}"))
+            self.ui(lambda i=i: status_lbl.configure(text=f"{i+1} / {total}"))
+
             try:
                 # Convert Doc to PDF
                 output_pdf_name = f"converted_{os.path.basename(doc_path)}.pdf"
                 output_pdf = os.path.join(temp_dir, output_pdf_name)
-                
+
                 Converter.word_to_pdf(doc_path, output_pdf)
-                
+
                 # Add to source files (Main Thread)
                 self.after(0, lambda p=output_pdf: self.process_file(p))
-                
+
             except Exception as e:
                 print(f"Error converting word file {doc_path}: {e}")
         
@@ -469,18 +465,18 @@ class MergePage(BasePage):
         
         for i, ppt_path in enumerate(files):
             prog = (i) / total
-            progress.set(prog)
-            label_lbl.configure(text=f"Convirtiendo: {os.path.basename(ppt_path)}")
-            status_lbl.configure(text=f"{i+1} / {total}")
-            
+            self.ui(lambda p=prog: progress.set(p))
+            self.ui(lambda d=ppt_path: label_lbl.configure(text=f"Convirtiendo: {os.path.basename(d)}"))
+            self.ui(lambda i=i: status_lbl.configure(text=f"{i+1} / {total}"))
+
             try:
                 # Convert PPT to PDF
                 output_pdf_name = f"converted_{os.path.basename(ppt_path)}.pdf"
                 output_pdf = os.path.join(temp_dir, output_pdf_name)
-                
+
                 Converter.powerpoint_to_pdf(ppt_path, output_pdf)
                 self.after(0, lambda p=output_pdf: self.process_file(p))
-                
+
             except Exception as e:
                 print(f"Error converting ppt file {ppt_path}: {e}")
         
@@ -513,10 +509,10 @@ class MergePage(BasePage):
         
         for i, img_path in enumerate(images):
             prog = (i) / total
-            progress.set(prog)
-            label_lbl.configure(text=f"Convirtiendo: {os.path.basename(img_path)}")
-            status_lbl.configure(text=f"{i+1} / {total}")
-            
+            self.ui(lambda p=prog: progress.set(p))
+            self.ui(lambda d=img_path: label_lbl.configure(text=f"Convirtiendo: {os.path.basename(d)}"))
+            self.ui(lambda i=i: status_lbl.configure(text=f"{i+1} / {total}"))
+
             try:
                 # Convert image to PDF
                 output_pdf_name = f"temp_img_{os.path.basename(img_path)}.pdf"

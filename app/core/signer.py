@@ -82,34 +82,72 @@ class PDFSigner:
             writer.write(f)
 
     @staticmethod
-    def sign_digital(pdf_path, output_path, pfx_path, password):
+    def sign_digital(pdf_path, output_path, pfx_path, password,
+                     field_name=None, box=(72, 72, 272, 132),
+                     reason=None, location=None, visible=True):
         """
         Sign PDF digitally using a PFX/P12 certificate.
+
+        :param field_name: Signature field name. If None, a unique one is
+            generated so the document can be signed several times without
+            colliding (the previous code always used 'Signature1').
+        :param box: (x0, y0, x1, y1) placement of the visible signature.
+        :param reason / location: optional signature metadata.
+        :param visible: if True, draws a visible text stamp; falls back to an
+            invisible signature if the appearance API is unavailable.
         """
         if not HAS_PYHANKO:
             raise ImportError("pyHanko no está instalado. Por favor instálelo para usar firmas digitales.")
+
+        import uuid
+
+        if not field_name:
+            field_name = f"Signature_{uuid.uuid4().hex[:8]}"
 
         signer = signers.P12Signer(
             entry_fname=pfx_path,
             passphrase=password.encode() if password else None
         )
 
+        meta = signers.PdfSignatureMetadata(
+            field_name=field_name, reason=reason, location=location
+        )
+
         with open(pdf_path, 'rb') as inf:
             w = IncrementalPdfFileWriter(inf)
             fields.append_signature_field(
-                w,
-                fields.SigFieldSpec(
-                    'Signature1',
-                    box=(100, 100, 300, 150)
-                )
+                w, fields.SigFieldSpec(field_name, box=box)
             )
-            
+
             with open(output_path, 'wb') as outf:
-                signers.sign_pdf(
-                    w, signers.PdfSignatureMetadata(field_name='Signature1'),
-                    signer=signer,
-                    output=outf,
-                )
+                signed = False
+                if visible:
+                    # Apariencia visual (sello de texto con firmante y fecha).
+                    try:
+                        from pyhanko import stamp
+                        from pyhanko.pdf_utils import text as pdf_text
+
+                        pdf_signer = signers.PdfSigner(
+                            meta,
+                            signer=signer,
+                            stamp_style=stamp.TextStampStyle(
+                                stamp_text='Firmado digitalmente\npor: %(signer)s\n%(ts)s',
+                                text_box_style=pdf_text.TextBoxStyle(),
+                            ),
+                        )
+                        pdf_signer.sign_pdf(w, output=outf, existing_fields_only=True)
+                        signed = True
+                    except Exception:
+                        # Si la API de apariencia no está disponible en esta
+                        # versión de pyHanko, se firma de forma invisible.
+                        outf.seek(0)
+                        outf.truncate(0)
+                        inf.seek(0)
+                        w = IncrementalPdfFileWriter(inf)
+                        fields.append_signature_field(w, fields.SigFieldSpec(field_name, box=box))
+
+                if not signed:
+                    signers.sign_pdf(w, meta, signer=signer, output=outf)
 
     @staticmethod
     def add_multiple_signatures(pdf_path, output_path, signatures_data):
